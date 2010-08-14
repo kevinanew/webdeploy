@@ -9,3 +9,4 @@
 *.sqlite
 *.swo
 *.example
+settings.py

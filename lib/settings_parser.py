@@ -1,24 +1,24 @@
 # coding: utf-8
 
-class ConfigNotFind(Exception):
+class SettingsNotFind(Exception):
     pass
 
 
-def get_config(config_key, default_value=None):
+def get_settings(settings_key, default_value=None):
     """
-    get config value from config.py
+    get settings value from settings.py
     """
     try:
-        import config
+        import settings
     except ImportError:
         if default_value is not None:
             return default_value
-        raise ConfigNotFind
+        raise SettingsNotFind
 
-    if hasattr(config, config_key):
-        return getattr(config, config_key)
+    if hasattr(settings, settings_key):
+        return getattr(settings, settings_key)
     else:
         if default_value is not None:
             return default_value
-        raise ConfigNotFind
+        raise SettingsNotFind
 

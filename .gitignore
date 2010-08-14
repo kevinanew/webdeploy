@@ -1,0 +1,11 @@
+*.pyc 
+*.pyo 
+*.bat 
+.pydevproject 
+.project
+*.swp
+*.orig
+*.lnk
+*.sqlite
+*.swo
+*.example

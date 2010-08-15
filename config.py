@@ -1,4 +1,5 @@
 # coding: utf-8
+from lib import utils
 
 
 class SettingsBuilder(object):
@@ -28,20 +29,19 @@ class SettingsBuilder(object):
         self.add_settings(settings_key, settings_value)
 
     def input_ssh_host(self):
-        host = self.show_prompt("ssh host ip:")
-        if ":" in host:
-            ip_address, ip_port = host.split(':')
-            ip_port = int(ip_port)
-        else:
-            ip_address = host
-            ip_port = 22  # default ssh port
-        
-        # TODO: check ip address format
-        
+        while True:
+            host = self.show_prompt('ssh host ip:')
+            try:
+                ip_address, ip_port = utils.parse_ip_and_port(
+                    host, default_port=22)
+            except:
+                print 'host not right, please input again'
+            else:
+                break
+
         self.add_settings('%s_SSH_HOSTS' % self.server_type.upper(),
             "['%s']" % ip_address)
         self.add_settings('%s_SSH_PORT' % self.server_type.upper(), ip_port)
-
 
     def set_server_type(self, server_type):
         assert server_type in ['staging', 'production']

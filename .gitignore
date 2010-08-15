@@ -1,12 +1,5 @@
-*.pyc 
-*.pyo 
-*.bat 
-.pydevproject 
-.project
+*.pyc
+*.DS_Store
+*~
 *.swp
-*.orig
-*.lnk
-*.sqlite
-*.swo
-*.example
 settings.py

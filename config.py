@@ -40,7 +40,7 @@ class SettingsBuilder(object):
                 break
 
         self.add_settings('%s_SSH_HOSTS' % self.server_type.upper(),
-            "['%s']" % ip_address)
+            [ip_address])
         self.add_settings('%s_SSH_PORT' % self.server_type.upper(), ip_port)
 
     def set_server_type(self, server_type):

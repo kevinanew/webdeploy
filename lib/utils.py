@@ -3,7 +3,8 @@ import re
 
 
 def print_server_info(env):
-    print '%s server hosts:' % env.server_type, env.hosts
+    print '%s server:' % env.server_type
+    print '--- host:', env.hosts
     print '--- port:', env.port
     print '--- username:', env.user
 

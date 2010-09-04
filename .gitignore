@@ -3,5 +3,5 @@
 *~
 *.swp
 .hg/
-scm/export/
+deploy_code/
 settings.py

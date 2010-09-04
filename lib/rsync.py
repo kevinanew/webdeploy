@@ -1,12 +1,13 @@
 # coding: utf-8
+import os
 
 
 class Rsync(object):
     def __init__(self, host, user, local_dir, remote_dir):
         self.host = host
         self.user = user
-        self.local_dir = local_dir
-        self.remote_dir = remote_dir
+        self.local_dir = os.path.normpath(local_dir)
+        self.remote_dir = os.path.normpath(remote_dir)
 
         self.ssh_cmd = ['ssh']
         self.exclude_file_list = []
@@ -15,6 +16,9 @@ class Rsync(object):
         self.ssh_cmd.append('-i %s' % ssh_key_file)
 
     def add_ssh_port(self, ssh_port):
+        if isinstance(ssh_port, basestring) and ssh_port.isdigit():
+            ssh_port = int(ssh_port)
+
         assert isinstance(ssh_port, int)
         assert 0 < ssh_port <= 255*255
         self.ssh_cmd.append('-p %s' % ssh_port)
@@ -30,7 +34,7 @@ class Rsync(object):
         return " ".join(self.exclude_file_list)
 
     def get_sync_dir(self):
-        return '{local_dir} {user}@{host}:{remote_dir}'.format(
+        return '{local_dir}/ {user}@{host}:{remote_dir}'.format(
             **self.__dict__)
 
     def get_cmd(self):

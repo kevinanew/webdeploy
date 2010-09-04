@@ -25,3 +25,4 @@ PRODUCTION_SSH_PASSWORD = get_settings('PRODUCTION_SSH_PASSWORD', '')
 ######################################################################
 SCM_NAME = 'mercury'
 SCM_REPOSITORY = get_settings('SCM_REPOSITORY')
+SCM_DEPLOY = 'deploy_code'

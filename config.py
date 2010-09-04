@@ -30,7 +30,7 @@ class SettingsBuilder(object):
 
     def input_ssh_host(self):
         while True:
-            host = self.show_prompt('ssh host ip:')
+            host = self.show_prompt('ssh host ip(:port) :')
             try:
                 ip_address, ip_port = utils.parse_ip_and_port(
                     host, default_port=22)
@@ -40,8 +40,7 @@ class SettingsBuilder(object):
                 break
 
         self.add_settings('%s_SSH_HOSTS' % self.server_type.upper(),
-            [ip_address])
-        self.add_settings('%s_SSH_PORT' % self.server_type.upper(), ip_port)
+            ["%s:%s" % (ip_address, ip_port)])
 
     def set_server_type(self, server_type):
         assert server_type in ['staging', 'production']

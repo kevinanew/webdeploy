@@ -61,6 +61,12 @@ def deploy():
 
         local(rsync.get_cmd())
 
+
+def restart_web_server():
+    require('hosts', provided_by=[staging_server, production_server])
+    run(settings.WEB_SERVER_RESTART_CMD)
+
+
 def test():
     require('hosts', provided_by=[staging_server, production_server])
 

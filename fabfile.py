@@ -7,7 +7,7 @@ Deploy Staging Server:
 Deploy Product Server:
     fab production deploy
 """
-from fabric.api import run, local, require
+from fabric.api import run, local, require, sudo
 from fabric.state import env
 
 from lib import utils
@@ -64,7 +64,7 @@ def deploy():
 
 def restart_web_server():
     require('hosts', provided_by=[staging_server, production_server])
-    run(settings.WEB_SERVER_RESTART_CMD)
+    sudo(settings.WEB_SERVER_RESTART_CMD)
 
 
 def test():

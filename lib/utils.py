@@ -1,6 +1,8 @@
 # coding: utf-8
 import re
 
+from fabric.api import run
+
 
 def print_server_info(env):
     print '%s server:' % env.server_type
@@ -37,3 +39,8 @@ def parse_ip_and_port(host, default_port):
         raise Exception
 
     return ip_address, ip_port
+
+
+def make_dir_if_not_exists(dir_path):
+    run('test -d {dir_path} || mkdir {dir_path}'.format(dir_path=dir_path))
+

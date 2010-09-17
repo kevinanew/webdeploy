@@ -7,12 +7,11 @@ Deploy Staging Server:
 Deploy Product Server:
     fab production deploy
 """
-from fabric.api import run, local, require, sudo, get
+from fabric.api import run, local, require, sudo, get, put
 from fabric.state import env
 
 from lib import scm
 from lib import utils
-from lib.database_backup import DatabaseBackup
 from lib.rsync import Rsync
 from conf import settings
 
@@ -78,6 +77,8 @@ def deploy():
 def backup_database():
     require('database_host', provided_by=[staging_server, production_server])
 
+    from lib.database_backup import DatabaseBackup
+    # FIXME database_host is not used ???
     database_backup = DatabaseBackup(env.database_user, env.database_password,
         env.database_name)
 
@@ -90,6 +91,22 @@ def backup_database():
         database_backup.get_local_backup_file_path())
     run(database_backup.get_remove_remote_backup_file_cmd())
 
+
+def restore_database():
+    require('database_host', provided_by=[staging_server])
+
+    from lib.database_restore import DatabaseRestore
+    database_restore = DatabaseRestore(env.database_user,
+        env.database_password, env.database_name)
+
+    utils.make_dir_if_not_exists(database_restore.get_remote_restore_dir())
+
+    database_restore.list_backup_file()
+    database_restore.set_restore_file()
+    put(database_restore.get_local_restore_file(),
+        database_restore.get_remote_restore_file())
+
+    run(database_restore.get_restore_database_cmd())
 
 def restart_web_server():
     require('hosts', provided_by=[staging_server, production_server])

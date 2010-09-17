@@ -55,5 +55,6 @@ SCM_DEPLOY = 'deploy_code'
 # Database
 ######################################################################
 REMOTE_DATABASE_BACKUP_DIR = '~/database_backup'
-LOCAL_DATABASE_BACKUP_DIR = '/website_backup/database'
+REMOTE_DATABASE_RESTORE_DIR = '~/database_restore'
 
+LOCAL_DATABASE_BACKUP_DIR = '/website_backup/database'

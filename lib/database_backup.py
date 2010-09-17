@@ -27,7 +27,10 @@ class DatabaseBackup(object):
         return os.path.join(self.local_backup_dir, self.sql_dump_filename)
 
     def make_local_backup_file_path(self):
-        os.makedirs(self.get_local_backup_file_path())
+        backup_file_dir = os.path.dirname(
+            self.get_local_backup_file_path())
+        if not os.path.exists(backup_file_dir):
+            os.makedirs()
 
     def get_remove_remote_backup_file_cmd(self):
         return 'rm {backup_file}'.format(

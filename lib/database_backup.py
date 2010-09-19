@@ -30,7 +30,7 @@ class DatabaseBackup(object):
         backup_file_dir = os.path.dirname(
             self.get_local_backup_file_path())
         if not os.path.exists(backup_file_dir):
-            os.makedirs()
+            os.makedirs(backup_file_dir)
 
     def get_remove_remote_backup_file_cmd(self):
         return 'rm {backup_file}'.format(

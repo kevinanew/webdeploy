@@ -6,15 +6,29 @@
 from lib.settings_parser import get_settings
 
 ######################################################################
+# SCM
+######################################################################
+SCM_NAME = get_settings('SCM_NAME', 'mercury')
+SCM_REPOSITORY = get_settings('SCM_REPOSITORY', 'mercury')
+SCM_DEPLOY = get_settings('SCM_DEPLOY', 'deploy_code')
+
+
+######################################################################
+# Database
+######################################################################
+REMOTE_DATABASE_BACKUP_DIR = get_settings('REMOTE_DATABASE_BACKUP_DIR',
+    '~/database_backup')
+REMOTE_DATABASE_RESTORE_DIR = get_settings('REMOTE_DATABASE_RESTORE_DIR',
+    '~/database_restore')
+LOCAL_DATABASE_BACKUP_DIR = get_settings('LOCAL_DATABASE_BACKUP_DIR',
+    '/website_backup/database')
+
+
+######################################################################
 # Staging server settings
 ######################################################################
 WEBSITE_URL = get_settings('WEBSITE_URL', '')
 WEB_SERVER_RESTART_CMD = get_settings('WEB_SERVER_RESTART_CMD', '')
-
-
-######################################################################
-# Staging server settings
-######################################################################
 STAGING_SSH_HOSTS = get_settings('STAGING_SSH_HOSTS', [])
 STAGING_SSH_PORT = get_settings('STAGING_SSH_PORT', 22)
 STAGING_SSH_USER = get_settings('STAGING_SSH_USER', '')
@@ -43,21 +57,4 @@ PRODUCTION_DATABASE_NAME = get_settings('PRODUCTION_DATABASE_NAME', '')
 PRODUCTION_DATABASE_PORT = get_settings('PRODUCTION_DATABASE_PORT', '')
 
 
-######################################################################
-# SCM
-######################################################################
-SCM_NAME = get_settings('SCM_NAME', 'mercury')
-SCM_REPOSITORY = get_settings('SCM_REPOSITORY', 'mercury')
-SCM_DEPLOY = get_settings('SCM_DEPLOY', 'deploy_code')
-
-
-######################################################################
-# Database
-######################################################################
-REMOTE_DATABASE_BACKUP_DIR = get_settings('REMOTE_DATABASE_BACKUP_DIR',
-    '~/database_backup')
-REMOTE_DATABASE_RESTORE_DIR = get_settings('REMOTE_DATABASE_RESTORE_DIR',
-    '~/database_restore')
-LOCAL_DATABASE_BACKUP_DIR = get_settings('LOCAL_DATABASE_BACKUP_DIR',
-    '/website_backup/database')
 

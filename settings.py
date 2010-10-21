@@ -10,23 +10,31 @@
 # SCM
 ######################################################################
 SCM_NAME = 'mercury'
-SCM_REPOSITORY = 'mercury'
+SCM_REPOSITORY_URL = ''
 SCM_DEPLOY = 'deploy_code'
-
+SCM_PASSWORD = ''
 
 ######################################################################
 # Database
 ######################################################################
 REMOTE_DATABASE_BACKUP_DIR = '~/database_backup'
 REMOTE_DATABASE_RESTORE_DIR = '~/database_restore'
-LOCAL_DATABASE_BACKUP_DIR = '/website_backup/database')
+LOCAL_DATABASE_BACKUP_DIR = '/website_backup/database'
 
+######################################################################
+# Project dir
+######################################################################
+REMOTE_PROJECT_DIR = ''
+
+######################################################################
+# Web server
+######################################################################
+WEB_SERVER_RESTART_CMD = ''
 
 ######################################################################
 # Staging server settings
 ######################################################################
 WEBSITE_URL = ''
-WEB_SERVER_RESTART_CMD = ''
 STAGING_SSH_HOSTS = []
 STAGING_SSH_PORT = 22
 STAGING_SSH_USER = ''

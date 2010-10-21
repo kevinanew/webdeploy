@@ -10,7 +10,6 @@ Deploy Product Server:
 from fabric.api import run, local, require, sudo, get, put
 from fabric.state import env
 
-from lib import scm
 from lib import utils
 from lib.rsync import Rsync
 import settings
@@ -50,8 +49,10 @@ def package():
     """
     Package source code from Source Control System
     """
-    scm_class = scm.get_scm(settings.SCM_NAME)
-    scm = scm_class(settings.SCM_REPOSITORY, settings.SCM_DEPLOY)
+    from lib import scm
+    scm_class = scm.get_scm_class(settings.SCM_NAME)
+    scm = scm_class(settings.SCM_REPOSITORY_URL, settings.SCM_DEPLOY)
+    scm.set_password(settings.SCM_PASSWORD)
     scm.package()
 
     env.scm = scm
@@ -65,13 +66,14 @@ def deploy():
     require('scm', provided_by=[package])
 
     for host in env.hosts:
-        rsync = Rsync(host=host, user=env.user,
-            local_dir=env.scm.get_package_dir(), remote_dir='test_deploy')
+        rsync = Rsync(host=host, user=env.user, password=env.password,
+            local_dir=env.scm.get_package_dir(),
+            remote_dir=settings.REMOTE_PROJECT_DIR)
+
         rsync.add_ssh_port(env.port)
         rsync.add_exclude_file('*.pyc')
         rsync.add_exclude_file('*.swp')
-
-        local(rsync.get_cmd())
+        rsync.run_cmd()
 
 
 def backup_database():
@@ -108,8 +110,11 @@ def restore_database():
 
     run(database_restore.get_restore_database_cmd())
 
+
 def restart_web_server():
     require('hosts', provided_by=[staging_server, production_server])
+    assert settings.WEB_SERVER_RESTART_CMD
+    print "Restart web server:", settings.WEB_SERVER_RESTART_CMD
     sudo(settings.WEB_SERVER_RESTART_CMD)
 
 

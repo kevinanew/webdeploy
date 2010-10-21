@@ -1,7 +1,0 @@
-*.pyc
-*.DS_Store
-*~
-*.swp
-.hg/
-deploy_code/
-project_settings.py

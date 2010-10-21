@@ -1,11 +1,13 @@
 # coding: utf-8
 import os
+from lib import pexpect
 
 
 class Rsync(object):
-    def __init__(self, host, user, local_dir, remote_dir):
+    def __init__(self, host, user, password, local_dir, remote_dir):
         self.host = host
         self.user = user
+        self.password = password
         self.local_dir = os.path.normpath(local_dir)
         self.remote_dir = os.path.normpath(remote_dir)
 
@@ -42,7 +44,16 @@ class Rsync(object):
         rsync_cmd.append("-e '%s'" % self.get_ssh_cmd())
         rsync_cmd.append(self.get_sync_dir())
         rsync_cmd.append(self.get_exclude_file())
-        rsync_cmd.append('-rlvx')
+        rsync_cmd.append('-rlvxz')
         rsync_cmd.append('--delete')
+        rsync_cmd.append('--timeout=60')
 
         return " ".join(rsync_cmd)
+
+    def run_cmd(self):
+        rsync_cmd = self.get_cmd()
+        print rsync_cmd
+        rsync_process = pexpect.spawn(rsync_cmd)
+        rsync_process.expect('.*password:.*')
+        rsync_process.sendline(self.password)
+        rsync_process.expect(pexpect.EOF)

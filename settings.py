@@ -13,6 +13,8 @@ SCM_NAME = 'mercury'
 SCM_REPOSITORY_URL = ''
 SCM_DEPLOY = 'deploy_code'
 SCM_PASSWORD = ''
+SCM_PACKAGE_CMD_LIST_FOR_STAGING = ()
+SCM_PACKAGE_CMD_LIST_FOR_PRODUCT = ()
 
 ######################################################################
 # Database

@@ -59,9 +59,15 @@ def package():
     env.scm = scm
 
     os.chdir(os.path.dirname(__file__))
-    for package_cmd in settings.SCM_PACKAGE_CMD_LIST:
-        os.system(package_cmd)
+    if env.server_type == 'staging':
+        cmd_list = settings.SCM_PACKAGE_CMD_LIST_FOR_STAGING
+    elif env.server_type == 'production':
+        cmd_list = settings.SCM_PACKAGE_CMD_LIST_FOR_PRODUCT
+    else:
+        raise
 
+    for package_cmd in cmd_list:
+        os.system(package_cmd)
 
 def deploy():
     """

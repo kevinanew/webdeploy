@@ -11,7 +11,7 @@ from fabric.api import run, local, require, sudo, get, put
 from fabric.state import env
 
 from lib import utils
-from lib.rsync import Rsync
+from lib.rsync import Rsync, RsyncDir
 import settings
 
 
@@ -74,6 +74,16 @@ def deploy():
         rsync.add_exclude_file('*.pyc')
         rsync.add_exclude_file('*.swp')
         rsync.run_cmd()
+
+
+def sync_project_files():
+    """
+    sync project files
+    """
+    require('hosts', provided_by=[staging_server, production_server])
+    for sync_item in settings.SYNC_DIR:
+        rsync_dir = RsyncDir(sync_item['from'], sync_item['to'])
+        run(rsync_dir.get_cmd())
 
 
 def backup_database():

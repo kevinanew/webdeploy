@@ -57,3 +57,19 @@ class Rsync(object):
         rsync_process.expect('.*password:.*')
         rsync_process.sendline(self.password)
         rsync_process.expect(pexpect.EOF)
+
+
+class RsyncDir(object):
+    def __init__(self, from_dir, to_dir):
+        self.from_dir = self.normally_dir_path(from_dir)
+        self.to_dir = self.normally_dir_path(to_dir)
+
+    def normally_dir_path(self, dir_path):
+        if dir_path[-1] == '/':
+            return dir_path
+        else:
+            return dir_path + '/'
+
+    def get_cmd(self):
+        return 'rsync -avn %s %s' % (self.from_dir, self.to_dir)
+

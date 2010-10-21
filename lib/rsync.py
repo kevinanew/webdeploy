@@ -71,5 +71,5 @@ class RsyncDir(object):
             return dir_path + '/'
 
     def get_cmd(self):
-        return 'rsync -avn %s %s' % (self.from_dir, self.to_dir)
+        return 'rsync -av %s %s' % (self.from_dir, self.to_dir)
 

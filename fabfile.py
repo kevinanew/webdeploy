@@ -7,6 +7,7 @@ Deploy Staging Server:
 Deploy Product Server:
     fab production deploy
 """
+import os
 from fabric.api import run, local, require, sudo, get, put
 from fabric.state import env
 
@@ -56,6 +57,10 @@ def package():
     scm.package()
 
     env.scm = scm
+
+    os.chdir(os.path.dirname(__file__))
+    for package_cmd in settings.SCM_PACKAGE_CMD_LIST:
+        os.system(package_cmd)
 
 
 def deploy():

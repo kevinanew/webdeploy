@@ -2,7 +2,7 @@
 import os
 from datetime import datetime
 
-from conf import settings
+import settings
 
 
 class DatabaseBackup(object):
@@ -38,8 +38,8 @@ class DatabaseBackup(object):
 
     def get_backup_cmd(self):
         mysql_backup_cmd_template = (
-            'mysqldump -u {db_user} -p"{db_password}" {db_name}'
-            ' | gzip -9 > {backup_file}')
+            'mysqldump -u {db_user} -p"{db_password}" {db_name} '
+            ' --single-transaction | gzip -9 > {backup_file}')
 
         return mysql_backup_cmd_template.format(
             backup_file=self.get_remote_backup_file_path(), **self.__dict__)

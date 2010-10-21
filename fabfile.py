@@ -13,7 +13,7 @@ from fabric.state import env
 from lib import scm
 from lib import utils
 from lib.rsync import Rsync
-from conf import settings
+import settings
 
 
 def staging_server():

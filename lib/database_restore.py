@@ -2,7 +2,7 @@
 import os
 import glob
 
-from conf import settings
+import settings
 
 
 class DatabaseRestore(object):

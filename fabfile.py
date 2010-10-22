@@ -21,6 +21,7 @@ def staging_server():
     env.hosts = settings.STAGING_SSH_HOSTS
     env.user = settings.STAGING_SSH_USER
     env.password = settings.STAGING_SSH_PASSWORD
+    env.ssh_key_file = settings.STAGING_SSH_KEY
 
     env.database_host = settings.STAGING_DATABASE_HOST
     env.database_user = settings.STAGING_DATABASE_USER
@@ -36,6 +37,7 @@ def production_server():
     env.hosts = settings.PRODUCTION_SSH_HOSTS
     env.user = settings.PRODUCTION_SSH_USER
     env.password = settings.PRODUCTION_SSH_PASSWORD
+    env.ssh_key_file = settings.PRODUCTION_SSH_KEY
 
     env.database_host = settings.PRODUCTION_DATABASE_HOST 
     env.database_user = settings.PRODUCTION_DATABASE_USER 
@@ -68,6 +70,7 @@ def package():
 
     for package_cmd in cmd_list:
         os.system(package_cmd)
+
 
 def deploy():
     """

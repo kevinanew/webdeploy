@@ -1,4 +1,4 @@
-# Django settings for simple_deploy project.
+# Django settings for simple_manage project.
 import os
 
 DEBUG = True
@@ -78,7 +78,7 @@ MIDDLEWARE_CLASSES = (
     'django.contrib.messages.middleware.MessageMiddleware',
 )
 
-ROOT_URLCONF = 'simple_deploy.urls'
+ROOT_URLCONF = 'simple_manage.urls'
 
 TEMPLATE_DIRS = (
     # Put strings here, like "/home/html/django_templates" or "C:/www/django/templates".

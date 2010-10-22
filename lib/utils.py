@@ -15,6 +15,9 @@ def print_server_info(env):
     else:
         print '--- password: (Not use)'
 
+    if env.ssh_key_file:
+        print '--- ssh key:', env.ssh_key_file
+
 
 def parse_ip_and_port(host, default_port):
     """

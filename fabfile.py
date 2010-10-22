@@ -80,10 +80,11 @@ def deploy():
     require('scm', provided_by=[package])
 
     for host in env.hosts:
-        rsync = Rsync(host=host, user=env.user, password=env.password,
+        rsync = Rsync(host=host, user=env.user,
             local_dir=env.scm.get_package_dir(),
             remote_dir=settings.REMOTE_PROJECT_DIR)
 
+        rsync.set_password(env.password)
         rsync.add_ssh_port(env.port)
         rsync.add_exclude_file('*.pyc')
         rsync.add_exclude_file('*.swp')

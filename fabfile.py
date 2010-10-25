@@ -79,19 +79,25 @@ def deploy():
     require('hosts', provided_by=[staging_server, production_server])
     require('scm', provided_by=[package])
 
+    _upload_code()
+    _sync_project_files()
+    
+
+def _upload_code():
     for host in env.hosts:
         rsync = Rsync(host=host, user=env.user,
             local_dir=env.scm.get_package_dir(),
             remote_dir=settings.REMOTE_PROJECT_DIR)
 
         rsync.set_password(env.password)
+        rsync.set_ssh_key_file(env.ssh_key_file)
         rsync.add_ssh_port(env.port)
         rsync.add_exclude_file('*.pyc')
         rsync.add_exclude_file('*.swp')
         rsync.run_cmd()
 
 
-def sync_project_files():
+def _sync_project_files():
     """
     sync project files
     """

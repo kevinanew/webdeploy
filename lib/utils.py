@@ -7,7 +7,7 @@ from fabric.api import run
 def print_server_info(env):
     print '%s server:' % env.server_type
     print '--- host:', env.hosts
-    print '--- port:', env.port
+    print '--- port:', env.port or '22'
     print '--- username:', env.user
 
     if env.password:

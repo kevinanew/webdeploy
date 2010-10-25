@@ -8,6 +8,7 @@ class Rsync(object):
         self.host = host
         self.user = user
         self.password = ''
+        self.ssh_key_file = ''
         self.local_dir = os.path.normpath(local_dir)
         self.remote_dir = os.path.normpath(remote_dir)
 
@@ -42,6 +43,11 @@ class Rsync(object):
     def set_password(self, password):
         self.password = password
 
+    def set_ssh_key_file(self, ssh_key_file):
+        ssh_key_file_normal_path = os.path.expanduser(ssh_key_file)
+        assert ssh_key_file_normal_path
+        self.ssh_key_file = ssh_key_file
+
     def get_cmd(self):
         rsync_cmd = ['rsync']
         rsync_cmd.append("-e '%s'" % self.get_ssh_cmd())
@@ -57,7 +63,9 @@ class Rsync(object):
         rsync_cmd = self.get_cmd()
         print rsync_cmd
 
-        if self.password:
+        if self.ssh_key_file:
+            os.system(rsync_cmd)
+        elif self.password:
             rsync_process = pexpect.spawn(rsync_cmd)
             rsync_process.expect('.*password:.*')
             rsync_process.sendline(self.password)

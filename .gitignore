@@ -6,3 +6,4 @@
 .hg/
 deploy_code/
 project_settings.py
+simple_manage/database/

@@ -45,7 +45,6 @@ class Rsync(object):
 
     def set_ssh_key_file(self, ssh_key_file):
         ssh_key_file_normal_path = os.path.expanduser(ssh_key_file)
-        assert ssh_key_file_normal_path
         self.ssh_key_file = ssh_key_file
 
     def get_cmd(self):

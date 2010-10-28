@@ -52,7 +52,7 @@ def deploy_fail(request, template_name="deploy_it/deploy_fail.html"):
 
 
 def deploy_force(request):
-    DeployInfo.objects.set_deploying(False)
+    deploy_lock.set_deploying(False)
     return HttpResponseRedirect(reverse('portal'))
 
 

@@ -11,3 +11,13 @@ class DeployLog(models.Model):
 
     def __unicode__(self):
         return "%s at %s" % (self.id, self.add)
+
+
+class DeployInfo(models.Model):
+    name = models.CharField(primary_key=True, max_length=128)
+    content = models.CharField(max_length=128)
+
+    def __unicode__(self):
+        return "%s : %s" % (self.name, self.content)
+
+

@@ -1,14 +1,12 @@
 # coding: utf-8
-import os
-
 from django.core.urlresolvers import reverse
+from django.db import transaction
 from django.http import HttpResponseRedirect
 from django.shortcuts import render_to_response, redirect
 from django.template import RequestContext
-from django.conf import settings
 
-from deploy_it.models import DeployLog
-from deploy_it.utils import run_cmd
+from deploy_it.models import DeployLog, DeployInfo
+from deploy_it.utils import run_deploy_cmd, get_deploy_cmd, deploy_lock
 
 
 def portal(request, template_name="deploy_it/portal.html"):
@@ -17,12 +15,15 @@ def portal(request, template_name="deploy_it/portal.html"):
         }))
 
 
-def deploy(request):
+def deploy(request, server_type):
+    if deploy_lock.is_deploying():
+        return render_to_response('deploy_it/deploying.html',
+            RequestContext(request,{
+            }))
+
     # Running deploy command
-    os.chdir(os.path.dirname(settings.PROJECT_ROOT))
-    staging_deploy_cmd = ('fab staging_server package deploy '
-        ' restart_web_server')
-    normal_output, error_output = run_cmd(staging_deploy_cmd)
+    deploy_cmd = get_deploy_cmd(server_type)
+    normal_output, error_output = run_deploy_cmd(deploy_cmd)
 
     # Save deploy command output
     deploy_log = DeployLog()
@@ -48,3 +49,10 @@ def deploy_fail(request, template_name="deploy_it/deploy_fail.html"):
     return render_to_response(template_name,
         RequestContext(request,{
         }))
+
+
+def deploy_force(request):
+    DeployInfo.objects.set_deploying(False)
+    return HttpResponseRedirect(reverse('portal'))
+
+

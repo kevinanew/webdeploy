@@ -1,0 +1,9 @@
+<div class="menu clearfix">
+  <div class="user_info">
+    <span>Hello {{ request.user.username }}</span> <a class="right" href="{% url django.contrib.auth.views.logout %}">Log Out</a>
+  </div>
+  <ul>
+    <li><a href="{% url deploy_portal %}">Deploy</a></li>
+    <li><a href="{% url admin:index %}">Admin</a></li>
+  </ul>
+</div>

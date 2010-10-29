@@ -1,14 +1,18 @@
-{% extends 'base.html' %}
+{% extends '2column_3_1.html' %}
 
 
-{% block body %}
+{% block header %}
+<h1>Deploy</h1>
+{% endblock header %}
+
+
+{% block left_column %}
 <script>
     function display_deploy_server(button) {
         document.getElementById(button.id + 'ing').style.display = '';
         button.style.display = 'none';
     }
 </script>
-<h1>Deploy</h1>
 <a id="staging_deploy" href="{% url deploy_staging %}" onclick="display_deploy_server(this);">Deploy to staging server</a>
 <a id="staging_deploying" style="display: none">Deploy to staging server (running ...)</a>
 
@@ -16,4 +20,4 @@
 <br/>
 <a id="production_deploy" href="{% url deploy_production %}" onclick="display_deploy_server(this);">Deploy to production server</a>
 <a id="production_deploying" style="display: none">Deploy to production server (running ...)</a>
-{% endblock body %}
+{% endblock left_column %}

@@ -3,7 +3,7 @@ from django.conf.urls.defaults import *
 
 
 urlpatterns = patterns('deploy_it.views',
-    url(r'^$', 'portal', name="portal"),
+    url(r'^$', 'portal', name="deploy_portal"),
 
     url(r'^deploy/staging/$', 'deploy', {'server_type': 'staging'},
         name="deploy_staging"),

@@ -4,17 +4,20 @@ from django.db import transaction
 from django.http import HttpResponseRedirect
 from django.shortcuts import render_to_response, redirect
 from django.template import RequestContext
+from django.contrib.auth.decorators import login_required
 
 from deploy_it.models import DeployLog, DeployInfo
 from deploy_it.utils import run_deploy_cmd, get_deploy_cmd, deploy_lock
 
 
+@login_required
 def portal(request, template_name="deploy_it/portal.html"):
     return render_to_response(template_name,
         RequestContext(request,{
         }))
 
 
+@login_required
 def deploy(request, server_type):
     if deploy_lock.is_deploying():
         return render_to_response('deploy_it/deploying.html',
@@ -39,18 +42,21 @@ def deploy(request, server_type):
         return HttpResponseRedirect(reverse('deploy_sucess'))
 
 
+@login_required
 def deploy_sucess(request, template_name="deploy_it/deploy_sucess.html"):
     return render_to_response(template_name,
         RequestContext(request,{
         }))
 
 
+@login_required
 def deploy_fail(request, template_name="deploy_it/deploy_fail.html"):
     return render_to_response(template_name,
         RequestContext(request,{
         }))
 
 
+@login_required
 def deploy_force(request):
     deploy_lock.set_deploying(False)
     return HttpResponseRedirect(reverse('portal'))

@@ -1,0 +1,13 @@
+{% extends 'base.html' %}
+
+
+{% block body %}
+<div class="span-15 prepend-1 colborder">
+{% block left_column %}{% endblock left_column %}
+</div>
+<div class="span-7 last">
+{% block right_column %}
+  {% include 'navigation_bar.html' %}
+{% endblock right_column %}
+</div>
+{% endblock body %}

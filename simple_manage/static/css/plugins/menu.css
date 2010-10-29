@@ -1,0 +1,20 @@
+.menu {
+    margin-bottom: 16px;
+}
+
+.menu ul {
+    padding: 0 0 0 0;
+}
+
+.menu li {
+    margin: 0 8px;
+    list-style-type: none;
+}
+
+.menu li:hover {
+    background-color: #ccc;
+}
+
+.menu li a:hover {
+    color: #fff;
+}

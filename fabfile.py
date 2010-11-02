@@ -48,6 +48,18 @@ def production_server():
     utils.print_server_info(env)
 
 
+def _compress_templates():
+    from lib.django_template_compress import DjangoTemplateCompressor
+
+    template_dir = os.path.join(env.scm.get_package_dir(), 'templates')
+    for root, dirs, files in os.walk(template_dir):
+        for file_path in files:
+            template_file_path = os.path.join(root, file_path)
+            compressor = DjangoTemplateCompressor(template_file_path)
+            compressor.process()
+            compressor.save_template_file()
+
+
 def package():
     """
     Package source code from Source Control System
@@ -57,8 +69,9 @@ def package():
     scm = scm_class(settings.SCM_REPOSITORY_URL, settings.SCM_DEPLOY)
     scm.set_password(settings.SCM_PASSWORD)
     scm.package()
-
     env.scm = scm
+
+    _compress_templates()
 
     os.chdir(os.path.dirname(__file__))
     if env.server_type == 'staging':
@@ -71,17 +84,6 @@ def package():
     for package_cmd in cmd_list:
         os.system(package_cmd)
 
-
-def deploy():
-    """
-    Upload source code to server
-    """
-    require('hosts', provided_by=[staging_server, production_server])
-    require('scm', provided_by=[package])
-
-    _upload_code()
-    _sync_project_files()
-    
 
 def _upload_code():
     for host in env.hosts:
@@ -106,6 +108,21 @@ def _sync_project_files():
         rsync_dir = RsyncDir(sync_item['from'], sync_item['to'])
         run(rsync_dir.get_cmd())
 
+
+def deploy():
+    """
+    Upload source code to server
+    """
+    require('hosts', provided_by=[staging_server, production_server])
+    require('scm', provided_by=[package])
+
+    _upload_code()
+    _sync_project_files()
+
+
+def _run_remote_deploy_cmd():
+    if hasattr(settings, 'REMOTE_DEPLOY_CMD') and settings.REMOTE_DEPLOY_CMD:
+        run(settings.REMOTE_DEPLOY_CMD)
 
 def backup_database():
     require('database_host', provided_by=[staging_server, production_server])

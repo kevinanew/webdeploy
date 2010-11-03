@@ -8,13 +8,6 @@ import sys
 
 from lib.slimmer import html_slimmer
 
-BLOCK_TAG_START = '{%'
-BLOCK_TAG_END = '%}'
-VARIABLE_TAG_START = '{{'
-VARIABLE_TAG_END = '}}'
-COMMENT_TAG_START = '{#'
-COMMENT_TAG_END = '#}'
-
 YUI_COMPRESSOR_PATH = '../tool/yuicompressor-2.4.2.jar'
 
 

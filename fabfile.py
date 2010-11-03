@@ -48,31 +48,32 @@ def production_server():
     utils.print_server_info(env)
 
 
-def _compress_templates():
-    from lib.django_template_compress import DjangoTemplateCompressor
-
-    template_dir = os.path.join(env.scm.get_package_dir(), 'templates')
-    for root, dirs, files in os.walk(template_dir):
-        for file_path in files:
-            template_file_path = os.path.join(root, file_path)
-            compressor = DjangoTemplateCompressor(template_file_path)
-            compressor.process()
-            compressor.save_template_file()
-
-
-def package():
-    """
-    Package source code from Source Control System
-    """
+def _scm_package():
     from lib import scm
     scm_class = scm.get_scm_class(settings.SCM_NAME)
-    scm = scm_class(settings.SCM_REPOSITORY_URL, settings.SCM_DEPLOY)
-    scm.set_password(settings.SCM_PASSWORD)
-    scm.package()
-    env.scm = scm
+    _scm = scm_class(settings.SCM_REPOSITORY_URL, settings.SCM_DEPLOY)
+    _scm.set_password(settings.SCM_PASSWORD)
+    _scm.package()
+    env.scm = _scm
 
-    _compress_templates()
 
+def _compress_templates():
+    def compress_django_templates(template_dir):
+        from lib.django_template_compress import DjangoTemplateCompressor
+
+        for root, dirs, files in os.walk(template_dir):
+            for file_path in files:
+                template_file_path = os.path.join(root, file_path)
+                compressor = DjangoTemplateCompressor(template_file_path)
+                compressor.process()
+                compressor.save_template_file()
+
+    for _template_dir in settings.PROJECT_TEMPLATE_DIR_LIST:
+        template_dir = os.path.join(env.scm.get_package_dir(), _template_dir)
+        compress_django_templates(template_dir)
+
+
+def _scm_package_cmd():
     os.chdir(os.path.dirname(__file__))
     if env.server_type == 'staging':
         cmd_list = settings.SCM_PACKAGE_CMD_LIST_FOR_STAGING
@@ -85,11 +86,20 @@ def package():
         local(package_cmd)
 
 
+def package():
+    """
+    Package source code from Source Control System
+    """
+    _scm_package()
+    _compress_templates()
+    _scm_package_cmd()
+
+
 def _upload_code():
     for host in env.hosts:
         rsync = Rsync(host=host, user=env.user,
             local_dir=env.scm.get_package_dir(),
-            remote_dir=settings.REMOTE_PROJECT_DIR)
+            remote_dir=settings.PROJECT_REMOTE_DIR)
 
         rsync.set_password(env.password)
         rsync.set_ssh_key_file(env.ssh_key_file)
@@ -104,7 +114,7 @@ def _sync_project_files():
     sync project files
     """
     require('hosts', provided_by=[staging_server, production_server])
-    for sync_item in settings.SYNC_DIR:
+    for sync_item in settings.PROJECT_SYNC_DIR:
         rsync_dir = RsyncDir(sync_item['from'], sync_item['to'])
         run(rsync_dir.get_cmd())
 
@@ -121,8 +131,10 @@ def deploy():
 
 
 def _run_remote_deploy_cmd():
-    if hasattr(settings, 'REMOTE_DEPLOY_CMD') and settings.REMOTE_DEPLOY_CMD:
-        run(settings.REMOTE_DEPLOY_CMD)
+    if hasattr(settings, 'PROJECT_REMOTE_DEPLOY_CMD') and \
+            settings.PROJECT_REMOTE_DEPLOY_CMD:
+        run(settings.PROJECT_REMOTE_DEPLOY_CMD)
+
 
 def backup_database():
     require('database_host', provided_by=[staging_server, production_server])
@@ -162,7 +174,7 @@ def restore_database():
 def restart_web_server():
     require('hosts', provided_by=[staging_server, production_server])
     assert settings.WEB_SERVER_RESTART_CMD
-    print "Restart web server:", settings.WEB_SERVER_RESTART_CMD
+    print("Restart web server: " + settings.WEB_SERVER_RESTART_CMD)
     sudo(settings.WEB_SERVER_RESTART_CMD)
 
 

@@ -69,17 +69,18 @@ class Mercury(object):
             'cd {work_dir} && hg archive -t files {export_dir}'.format(
                 **self.__dict__))
 
-    def _get_revision(self):
+    def get_revision(self):
         cmd_output= subprocess.Popen('cd {work_dir} && hg tip'.format(
             **self.__dict__), shell=True, stdout=subprocess.PIPE).stdout
 
-        version = cmd_output.read().split(':')[1].strip()
-        assert version.isdigit()
-        return int(version)
+        reversion = cmd_output.read().split(':')[1].strip()
+        assert reversion.isdigit()
+        return int(reversion)
 
     def _build_revision_file(self):
+        print("make revision.txt")
         revision_file = os.path.join(self.export_dir, 'revision.txt')
-        open(revision_file, 'w').write(str(self._get_revision()))
+        open(revision_file, 'w').write(str(self.get_revision()))
 
     def run_cmd(self, cmd):
         print("== dir: %s ==" % os.getcwd())

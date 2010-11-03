@@ -26,8 +26,9 @@ LOCAL_DATABASE_BACKUP_DIR = '/website_backup/database'
 ######################################################################
 # Project dir
 ######################################################################
-REMOTE_PROJECT_DIR = ''
-SYNC_DIR = (
+PROJECT_REMOTE_DIR = ''
+PROJECT_TEMPLATE_DIR_LIST = ()
+PROJECT_SYNC_DIR = (
 )
 
 ######################################################################

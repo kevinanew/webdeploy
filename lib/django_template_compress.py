@@ -1,11 +1,12 @@
 # coding: utf8
 """
-Django template 压缩器
+Compressor for django template
 """
 import os
 import re
 import sys
 
+from lib.slimmer import html_slimmer
 
 BLOCK_TAG_START = '{%'
 BLOCK_TAG_END = '%}'
@@ -16,9 +17,10 @@ COMMENT_TAG_END = '#}'
 
 YUI_COMPRESSOR_PATH = '../tool/yuicompressor-2.4.2.jar'
 
+
 class DjangoTemplateCompressor():
     """
-    Django 模板压缩器
+    Compressor for django template
     """
     def __init__(self, template_file_path):
         self.template_file_path = template_file_path
@@ -30,60 +32,35 @@ class DjangoTemplateCompressor():
 
     def process(self):
         """
-        处理函数
+        template compressor process
         """
         if os.path.splitext(self.template_file_path)[1] in ('.html', '.htm'):
-            self.result = self.remove_space()
+            self.result = self.remove_line_space()
+            self.result = html_slimmer(self.result)
             self.result = self.strip_spaces_between_tags(self.result)
         elif os.path.splitext(self.template_file_path)[1] in ('.js', ):
             self.compress_js()
 
     def save_template_file(self):
-        """
-        保存计算结果
-        """
         template_file = open(self.template_file_path, "wb")
         template_file.write(self.get_result().encode('utf8'))
         template_file.close()
 
     def get_result(self):
-        """
-        返回处理的结果
-        """
         return self.result
 
     def strip_spaces_between_tags(self, value):
         return re.sub(r'%}\s+', '%}', value)
 
-    def remove_space(self):
-        """
-        去掉模板中的空格
-        """
+    def remove_line_space(self):
         result = ""
-        # 去掉行首和行尾的空格
         for content_line in self.result.split(u'\n'):
             content_line = content_line.strip()
-            # 去掉空行
+
             if content_line:
                 result += content_line + u'\n'
 
         return result
-
-    def remove_tag_end(self):
-        """
-        删除 django template tag 结尾的换行符
-        """
-        def _remove_line(match_result):
-            tag_full = match_result.group(1)
-            return tag_full
-
-        tag_re = re.compile('(%s(.*?)%s|%s(.*?)%s|%s(.*?)%s)\n' % (
-            re.escape(BLOCK_TAG_START), re.escape(BLOCK_TAG_END),
-            re.escape(VARIABLE_TAG_START), re.escape(VARIABLE_TAG_END),
-            re.escape(COMMENT_TAG_START), re.escape(COMMENT_TAG_END)))
-
-        _code = tag_re.sub(_remove_line, self.result)
-        return _code
 
     def compress_js(self):
         compress_cmd = ('java -jar {yuicompressor} '
@@ -91,7 +68,12 @@ class DjangoTemplateCompressor():
             ).format(yuicompressor=self.yui_compressor_path, 
                 js_source_file=self.template_file_path,
                 js_minfy_file=self.template_file_path)
-        os.system(compress_cmd)
+
+        self.run_cmd(compress_cmd)
+
+    def run_cmd(self, cmd):
+        print("[localhost] run: " + cmd)
+        os.system(cmd)
 
 
 if __name__ == '__main__':

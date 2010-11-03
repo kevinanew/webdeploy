@@ -82,7 +82,7 @@ def package():
         raise
 
     for package_cmd in cmd_list:
-        os.system(package_cmd)
+        local(package_cmd)
 
 
 def _upload_code():

@@ -47,12 +47,11 @@ class Mercury(object):
     def _clone(self):
         hg_clone_cmd = 'hg clone {repository_url} {work_dir}'.format(
             **self.__dict__)
-        print hg_clone_cmd
 
         if self.password:
             self._login_use_password(hg_clone_cmd)
         else:
-            os.system(hg_clone_cmd)
+            self.run_cmd(hg_clone_cmd)
 
     def _update(self):
         os.chdir(self.work_dir)
@@ -60,15 +59,13 @@ class Mercury(object):
         if self.password:
             self._login_use_password('hg pull')
         else:
-            os.system('hg pull')
+            self.run_cmd('hg pull')
 
-        os.system('hg up -C')
+        self.run_cmd('hg up -C')
 
     def _export(self):
-        print 'hg archive -t files {export_dir}'.format(**self.__dict__)
-
-        os.system('rm {work_dir} -rf')
-        os.system(
+        self.run_cmd('rm {work_dir} -rf')
+        self.run_cmd(
             'cd {work_dir} && hg archive -t files {export_dir}'.format(
                 **self.__dict__))
 
@@ -83,3 +80,8 @@ class Mercury(object):
     def _build_revision_file(self):
         revision_file = os.path.join(self.export_dir, 'revision.txt')
         open(revision_file, 'w').write(str(self._get_revision()))
+
+    def run_cmd(self, cmd):
+        print("== dir: %s ==" % os.getcwd())
+        print("[localhost] run: " + cmd)
+        os.system(cmd)

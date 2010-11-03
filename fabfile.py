@@ -73,6 +73,22 @@ def _compress_templates():
         compress_django_templates(template_dir)
 
 
+def _compile_templates():
+    def compile_django_templates(template_dir):
+        from lib.django_template_compiler import DjangoTemplateCompiler
+        for root, dirs, files in os.walk(template_dir):
+            for file_path in files:
+                template_file_path = os.path.join(root, file_path)
+                compiler = DjangoTemplateCompiler(template_file_path)
+                compiler.set_value(code_version=env.scm.get_revision())
+                compiler.process()
+                compiler.save_template_file()
+
+    for _template_dir in settings.PROJECT_TEMPLATE_DIR_LIST:
+        template_dir = os.path.join(env.scm.get_package_dir(), _template_dir)
+        compile_django_templates(template_dir)
+
+
 def _scm_package_cmd():
     os.chdir(os.path.dirname(__file__))
     if env.server_type == 'staging':
@@ -92,6 +108,10 @@ def package():
     """
     _scm_package()
     _compress_templates()
+    # _compile_templates must after compress_templates, 
+    # becuase _compile_templates will generate html comment that will be 
+    # clean by _compress_templates
+    _compile_templates()
     _scm_package_cmd()
 
 

@@ -14,6 +14,7 @@ class Mercury(object):
         self.work_dir = os.path.join(self.deploy_dir, 'working')
         self.export_dir = os.path.join(self.deploy_dir, "working.export")
         self.password = None
+        self._reversion = None
 
         if not os.path.exists(self.deploy_dir):
             os.makedirs(self.deploy_dir)
@@ -70,12 +71,15 @@ class Mercury(object):
                 **self.__dict__))
 
     def get_revision(self):
-        cmd_output= subprocess.Popen('cd {work_dir} && hg tip'.format(
-            **self.__dict__), shell=True, stdout=subprocess.PIPE).stdout
+        if self._reversion is None:
+            cmd_output= subprocess.Popen('cd {work_dir} && hg tip'.format(
+                **self.__dict__), shell=True, stdout=subprocess.PIPE).stdout
+    
+            reversion = cmd_output.read().split(':')[1].strip()
+            assert reversion.isdigit()
+            self._reversion = int(reversion)
 
-        reversion = cmd_output.read().split(':')[1].strip()
-        assert reversion.isdigit()
-        return int(reversion)
+        return self._reversion
 
     def _build_revision_file(self):
         print("make revision.txt")

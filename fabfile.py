@@ -58,35 +58,26 @@ def _scm_package():
 
 
 def _compress_templates():
-    def compress_django_templates(template_dir):
-        from lib.django_template_compress import DjangoTemplateCompressor
-
-        for root, dirs, files in os.walk(template_dir):
-            for file_path in files:
-                template_file_path = os.path.join(root, file_path)
-                compressor = DjangoTemplateCompressor(template_file_path)
-                compressor.process()
-                compressor.save_template_file()
+    from lib.django_template_compress import DjangoTemplateCompressor
 
     for _template_dir in settings.PROJECT_TEMPLATE_DIR_LIST:
         template_dir = os.path.join(env.scm.get_package_dir(), _template_dir)
-        compress_django_templates(template_dir)
+        for template_path in utils.get_files_in_dir(template_dir):
+            compressor = DjangoTemplateCompressor(template_file_path)
+            compressor.process()
+            compressor.save_template_file()
 
 
 def _compile_templates():
-    def compile_django_templates(template_dir):
-        from lib.django_template_compiler import DjangoTemplateCompiler
-        for root, dirs, files in os.walk(template_dir):
-            for file_path in files:
-                template_file_path = os.path.join(root, file_path)
-                compiler = DjangoTemplateCompiler(template_file_path)
-                compiler.set_value(code_version=env.scm.get_revision())
-                compiler.process()
-                compiler.save_template_file()
+    from lib.django_template_compiler import DjangoTemplateCompiler
 
     for _template_dir in settings.PROJECT_TEMPLATE_DIR_LIST:
         template_dir = os.path.join(env.scm.get_package_dir(), _template_dir)
-        compile_django_templates(template_dir)
+        for template_path in utils.get_files_in_dir(template_dir):
+            compiler = DjangoTemplateCompiler(template_path)
+            compiler.set_value(code_version=env.scm.get_revision())
+            compiler.process()
+            compiler.save_template_file()
 
 
 def _scm_package_cmd():

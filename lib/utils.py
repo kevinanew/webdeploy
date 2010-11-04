@@ -1,4 +1,5 @@
 # coding: utf-8
+import os
 import re
 
 from fabric.api import run
@@ -47,3 +48,8 @@ def parse_ip_and_port(host, default_port):
 def make_dir_if_not_exists(dir_path):
     run('test -d {dir_path} || mkdir {dir_path}'.format(dir_path=dir_path))
 
+
+def get_files_in_dir(root_dir):
+    for root, dirs, files in os.walk(root_dir):
+        for file_path in files:
+            yield os.path.abspath(os.path.join(root, file_path))

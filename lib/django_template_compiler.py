@@ -29,7 +29,7 @@ class DjangoTemplateCompiler(object):
         code_version = self.context_value.get('code_version')
 
         self.template_content = self.template_content.replace(
-            tag, u'<!--d:%s|r:%s-->' % (compile_date, code_version))
+            tag, u'<!--%s|r%s-->' % (compile_date, code_version))
 
 
     def save_template_file(self):

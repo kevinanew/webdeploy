@@ -19,11 +19,12 @@ def test_package():
 
     assert scm.get_revision() == 0
 
-    scm.build_revision_file()
     assert os.path.exists('%s/revision.txt' % scm.export_dir) == True
 
     if os.path.exists(scm.work_dir):
+        print "delete:", scm.work_dir
         shutil.rmtree(scm.work_dir)
 
     if os.path.exists(scm.deploy_dir):
+        print "delete:", scm.deploy_dir
         shutil.rmtree(scm.deploy_dir)

@@ -65,7 +65,6 @@ class Mercury(object):
         self.run_cmd('hg up -C')
 
     def _export(self):
-        self.run_cmd('rm -rf {work_dir}')
         self.run_cmd(
             'cd {work_dir} && hg archive -t files {export_dir}'.format(
                 **self.__dict__))

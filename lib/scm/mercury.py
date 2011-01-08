@@ -6,21 +6,20 @@ import os
 import subprocess
 from lib import pexpect 
 
+from lib.scm.base import ScmBase
 
-class Mercury(object):
-    def __init__(self, repository_url, deploy_dir):
-        self.repository_url = repository_url
-        self.deploy_dir = os.path.abspath(deploy_dir)
-        self.work_dir = os.path.join(self.deploy_dir, 'working')
-        self.export_dir = os.path.join(self.deploy_dir, "working.export")
-        self.password = None
-        self._reversion = None
 
-        if not os.path.exists(self.deploy_dir):
-            os.makedirs(self.deploy_dir)
+class Mercury(ScmBase):
+    def get_revision(self):
+        if self._reversion is None:
+            cmd_output= subprocess.Popen('cd {work_dir} && hg tip'.format(
+                **self.__dict__), shell=True, stdout=subprocess.PIPE).stdout
+    
+            reversion = cmd_output.read().split(':')[1].strip()
+            assert reversion.isdigit()
+            self._reversion = int(reversion)
 
-    def set_password(self, password):
-        self.password = password
+        return self._reversion
 
     def package(self):
         """
@@ -29,9 +28,6 @@ class Mercury(object):
         self._build_current_repository()
         self._export()
         self._build_revision_file()
-
-    def get_package_dir(self):
-        return self.export_dir
 
     def _build_current_repository(self):
         if os.path.exists(self.work_dir):
@@ -69,23 +65,7 @@ class Mercury(object):
             'cd {work_dir} && hg archive -t files {export_dir}'.format(
                 **self.__dict__))
 
-    def get_revision(self):
-        if self._reversion is None:
-            cmd_output= subprocess.Popen('cd {work_dir} && hg tip'.format(
-                **self.__dict__), shell=True, stdout=subprocess.PIPE).stdout
-    
-            reversion = cmd_output.read().split(':')[1].strip()
-            assert reversion.isdigit()
-            self._reversion = int(reversion)
-
-        return self._reversion
-
     def _build_revision_file(self):
         print("make revision.txt")
         revision_file = os.path.join(self.export_dir, 'revision.txt')
         open(revision_file, 'w').write(str(self.get_revision()))
-
-    def run_cmd(self, cmd):
-        print("== dir: %s ==" % os.getcwd())
-        print("[localhost] run: " + cmd)
-        os.system(cmd)

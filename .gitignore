@@ -7,3 +7,5 @@
 deploy_code/
 project_settings.py
 simple_manage/database/
+lib/scm/test_repository/deploy_git_project/
+lib/scm/test_repository/deploy_hg_project/export/working.export/

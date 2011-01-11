@@ -1,9 +1,20 @@
 # coding: utf-8
 import os
+import subprocess
+
 from lib.scm.base import ScmBase
 
 
 class Git(ScmBase):
+    def get_revision(self):
+        if self._reversion is None:
+            cmd_output= subprocess.Popen('cd {work_dir} && git log -1'.format(
+                **self.__dict__), shell=True, stdout=subprocess.PIPE).stdout
+    
+            self._reversion = cmd_output.read().splitlines()[0].split(' ')[1]
+
+        return self._reversion
+
     def package(self):
         """
         Package source code for deploy

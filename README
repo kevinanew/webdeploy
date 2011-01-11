@@ -1,1 +1,7 @@
 Website deployment toolkit
+
+
+Q: How to use this?
+A: copy settings.py to project_settings.py and put you config into it.
+
+

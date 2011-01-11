@@ -14,6 +14,9 @@ class ScmBase(object):
         if not os.path.exists(self.deploy_dir):
             os.makedirs(self.deploy_dir)
 
+    def get_package_dir(self):
+        return self.export_dir
+
     def set_password(self, password):
         self.password = password
 

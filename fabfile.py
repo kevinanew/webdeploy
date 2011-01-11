@@ -62,8 +62,9 @@ def _compress_templates():
 
     for _template_dir in settings.PROJECT_TEMPLATE_DIR_LIST:
         template_dir = os.path.join(env.scm.get_package_dir(), _template_dir)
+        print "compress templates:", template_dir
         for template_path in utils.get_files_in_dir(template_dir):
-            compressor = DjangoTemplateCompressor(template_file_path)
+            compressor = DjangoTemplateCompressor(template_path)
             compressor.process()
             compressor.save_template_file()
 
@@ -73,6 +74,7 @@ def _compile_templates():
 
     for _template_dir in settings.PROJECT_TEMPLATE_DIR_LIST:
         template_dir = os.path.join(env.scm.get_package_dir(), _template_dir)
+        print "compile templates:", template_dir
         for template_path in utils.get_files_in_dir(template_dir):
             compiler = DjangoTemplateCompiler(template_path)
             compiler.set_value(code_version=env.scm.get_revision())
@@ -82,16 +84,17 @@ def _compile_templates():
 
 def _scm_package_cmd():
     os.chdir(os.path.dirname(__file__))
-    if env.server_type == 'staging':
+
+    server_type = getattr(env, 'server_type', '')
+    if server_type == 'staging':
         cmd_list = settings.SCM_PACKAGE_CMD_LIST_FOR_STAGING
-    elif env.server_type == 'production':
+    elif server_type == 'production':
         cmd_list = settings.SCM_PACKAGE_CMD_LIST_FOR_PRODUCT
     else:
-        raise
+        cmd_list = ()
 
     for package_cmd in cmd_list:
         local(package_cmd)
-
 
 def package():
     """
@@ -108,6 +111,8 @@ def package():
 
 def _upload_code():
     for host in env.hosts:
+        run('test -d %s || mkdir -p %s' % (settings.PROJECT_REMOTE_DIR,
+            settings.PROJECT_REMOTE_DIR))
         rsync = Rsync(host=host, user=env.user,
             local_dir=env.scm.get_package_dir(),
             remote_dir=settings.PROJECT_REMOTE_DIR)

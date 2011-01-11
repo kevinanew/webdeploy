@@ -63,13 +63,16 @@ class Rsync(object):
         print rsync_cmd
 
         if self.ssh_key_file:
+            print "Rsync: use ssh key"
             os.system(rsync_cmd)
         elif self.password:
+            print "Rsync: use password"
             rsync_process = pexpect.spawn(rsync_cmd)
-            rsync_process.expect('.*password:.*')
+            rsync_process.expect('.*[Pp]assword:.*')
             rsync_process.sendline(self.password)
             rsync_process.expect(pexpect.EOF)
         else:
+            print "Rsync: no password and key"
             os.system(rsync_cmd)
 
 

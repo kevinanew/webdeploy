@@ -131,6 +131,7 @@ def _sync_project_files():
     """
     require('hosts', provided_by=[staging_server, production_server])
     for sync_item in settings.PROJECT_SYNC_DIR:
+        run('test -d %s || mkdir -p %s' % (sync_item['to'], sync_item['to']))
         rsync_dir = RsyncDir(sync_item['from'], sync_item['to'])
         run(rsync_dir.get_cmd())
 

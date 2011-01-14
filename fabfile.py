@@ -192,7 +192,10 @@ def restart_web_server():
     require('hosts', provided_by=[staging_server, production_server])
     assert settings.WEB_SERVER_RESTART_CMD
     print("Restart web server: " + settings.WEB_SERVER_RESTART_CMD)
-    sudo(settings.WEB_SERVER_RESTART_CMD)
+    if settings.IS_WEB_SERVER_RESTART_NEED_SUDO:
+        sudo(settings.WEB_SERVER_RESTART_CMD)
+    else:
+        run(settings.WEB_SERVER_RESTART_CMD)
 
 
 def test():

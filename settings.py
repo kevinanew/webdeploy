@@ -35,6 +35,7 @@ PROJECT_SYNC_DIR = (
 # Web server
 ######################################################################
 WEB_SERVER_RESTART_CMD = ''
+IS_WEB_SERVER_RESTART_NEED_SUDO = True
 
 ######################################################################
 # Staging server settings

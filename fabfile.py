@@ -2,10 +2,10 @@
 """
 Useage:
 Deploy Staging Server:
-    fab staging deploy
+    fab staging_server package deploy restart_web_server
 
 Deploy Product Server:
-    fab production deploy
+    fab production_server package deploy restart_web_server
 """
 import os
 from fabric.api import run, local, require, sudo, get, put

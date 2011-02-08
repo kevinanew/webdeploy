@@ -6,10 +6,11 @@ import settings
 
 
 class DatabaseRestore(object):
-    def __init__(self, db_user, db_password, db_name):
+    def __init__(self, db_user, db_password, db_name, db_host):
         self.db_user = db_user
         self.db_password = db_password
         self.db_name = db_name
+        self.db_host = db_host
 
         self.local_backup_dir = settings.LOCAL_DATABASE_BACKUP_DIR
         self.remote_restore_dir = settings.REMOTE_DATABASE_RESTORE_DIR
@@ -93,7 +94,7 @@ class DatabaseRestore(object):
     def _get_sql_restore_cmd(self):
         # cmd: mysql -u [uname] -p[pass] [db_to_restore] < [backupfile.sql]
         sql_restore_cmd_template = (
-            'mysql -u {db_user} -p"{db_password}" {db_name} '
+            'mysql -h {db_host} -u {db_user} -p"{db_password}" {db_name} '
             '< {unziped_sql_file}')
         return sql_restore_cmd_template.format(
             unziped_sql_file=self.get_unziped_sql_filename(),

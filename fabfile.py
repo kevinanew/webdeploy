@@ -176,7 +176,7 @@ def restore_database():
 
     from lib.database_restore import DatabaseRestore
     database_restore = DatabaseRestore(env.database_user,
-        env.database_password, env.database_name)
+        env.database_password, env.database_name, env.database_host)
 
     utils.make_dir_if_not_exists(database_restore.get_remote_restore_dir())
 

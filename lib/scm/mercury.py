@@ -4,7 +4,7 @@ Source control system
 """
 import os
 import subprocess
-from lib import pexpect 
+import urllib
 
 from lib.scm.base import ScmBase
 
@@ -35,29 +35,19 @@ class Mercury(ScmBase):
         else:
             self._clone()
 
-    def _login_use_password(self, hg_cmd):
-        hg_process = pexpect.spawn(hg_cmd)
-        hg_process.expect('.*password:.*')
-        hg_process.sendline(self.password)
-        hg_process.expect(pexpect.EOF)
-
     def _clone(self):
+        self.repository_url = self.repository_url.replace(
+            '@', ':%s@' % urllib.quote(self.password))
         hg_clone_cmd = 'hg clone {repository_url} {work_dir}'.format(
             **self.__dict__)
 
-        if self.password:
-            self._login_use_password(hg_clone_cmd)
-        else:
-            self.run_cmd(hg_clone_cmd)
+        # use quote because if "@" in password that will break this command
+        self.run_cmd(hg_clone_cmd)
 
     def _update(self):
         os.chdir(self.work_dir)
 
-        if self.password:
-            self._login_use_password('hg pull')
-        else:
-            self.run_cmd('hg pull')
-
+        self.run_cmd('hg pull')
         self.run_cmd('hg up -C')
 
     def _export(self):

@@ -15,7 +15,8 @@ class DatabaseBackup(object):
             '%F_%Hh%Mm%Ss')
     
         self.remote_backup_dir = settings.REMOTE_DATABASE_BACKUP_DIR
-        self.local_backup_dir = settings.LOCAL_DATABASE_BACKUP_DIR
+        self.local_backup_dir = os.path.expanduser(
+            settings.LOCAL_DATABASE_BACKUP_DIR)
 
     def get_remote_backup_dir(self):
         return self.remote_backup_dir

@@ -21,7 +21,7 @@ SCM_PACKAGE_CMD_LIST_FOR_PRODUCT = ()
 ######################################################################
 REMOTE_DATABASE_BACKUP_DIR = '~/database_backup'
 REMOTE_DATABASE_RESTORE_DIR = '~/database_restore'
-LOCAL_DATABASE_BACKUP_DIR = '/website_backup/database'
+LOCAL_DATABASE_BACKUP_DIR = '~/webdeploy_backup/database'
 
 ######################################################################
 # Project dir

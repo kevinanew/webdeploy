@@ -12,7 +12,8 @@ class DatabaseRestore(object):
         self.db_name = db_name
         self.db_host = db_host
 
-        self.local_backup_dir = settings.LOCAL_DATABASE_BACKUP_DIR
+        self.local_backup_dir = os.path.expanduser(
+            settings.LOCAL_DATABASE_BACKUP_DIR)
         self.remote_restore_dir = settings.REMOTE_DATABASE_RESTORE_DIR
 
     def display_restore_info(self):
@@ -54,6 +55,7 @@ class DatabaseRestore(object):
 
     def get_backup_file_list(self):
         backup_file_pattern = os.path.join(self.local_backup_dir, '*.sql.gz')
+        print backup_file_pattern
         backup_files = glob.glob(backup_file_pattern)
 
         backup_files.sort()

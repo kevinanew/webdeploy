@@ -23,7 +23,8 @@ def staging_server():
     env.password = settings.STAGING_SSH_PASSWORD
 
     ssh_key_path = os.path.expanduser(settings.STAGING_SSH_KEY)
-    env.key_filename = [ssh_key_path]
+    if ssh_key_path:
+        env.key_filename = [ssh_key_path]
     # this will use by some tool like rsync
     env.ssh_key_file = ssh_key_path
 
@@ -43,7 +44,8 @@ def production_server():
     env.password = settings.PRODUCTION_SSH_PASSWORD
 
     ssh_key_path = os.path.expanduser(settings.PRODUCTION_SSH_KEY)
-    env.key_filename = [ssh_key_path]
+    if ssh_key_path:
+        env.key_filename = [ssh_key_path]
     # this will use by some tool like rsync
     env.ssh_key_file = ssh_key_path
 

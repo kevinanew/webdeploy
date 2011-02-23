@@ -3,8 +3,10 @@
 *~
 *.swp
 *.swo
+*.bak
 '
 .hg/
+.git/
 deploy_code/
 project_settings.py
 simple_manage/database/

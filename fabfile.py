@@ -146,6 +146,12 @@ def _sync_project_files():
         run(rsync_dir.get_cmd())
 
 
+def _run_remote_deploy_cmd():
+    deploy_cmd_list = getattr(settings, 'PROJECT_DEPLOY_CMD_LIST', [])
+    for deploy_cmd in deploy_cmd_list:
+        run(deploy_cmd)
+
+
 def deploy():
     """
     Upload source code to server
@@ -155,12 +161,7 @@ def deploy():
 
     _upload_code()
     _sync_project_files()
-
-
-def _run_remote_deploy_cmd():
-    if hasattr(settings, 'PROJECT_REMOTE_DEPLOY_CMD') and \
-            settings.PROJECT_REMOTE_DEPLOY_CMD:
-        run(settings.PROJECT_REMOTE_DEPLOY_CMD)
+    _run_remote_deploy_cmd()
 
 
 def backup_database():

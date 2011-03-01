@@ -11,10 +11,10 @@ import suds.client
 
 class DynectAddNode(object):
     printer = PrettyPrinter(indent=4)
-    
+
     # The path to the Dynect API WSDL file
     base_url = 'https://api2.dynect.net/wsdl/current/Dynect.wsdl'
-    
+
     def __init__(self):
         self.client = suds.client.Client(self.base_url)
         self.token = None
@@ -31,9 +31,9 @@ class DynectAddNode(object):
             print "Login request failed!"
             self.printer.pprint(response)
             raise SystemExit
-        
+
         self.token = response.data.token
-        
+
         print "Token: %s" % self.token
 
     def has_node(self, zone, domain):
@@ -41,12 +41,12 @@ class DynectAddNode(object):
             token=self.token,
             zone=zone,
         )
-        
+
         if response.status != 'success':
             print "Record request failed!"
             self.printer.pprint(response)
             raise SystemExit
-    
+
         if domain in response.data:
             # make sure node isn't empty
             response = self.client.service.GetARecords(
@@ -54,7 +54,7 @@ class DynectAddNode(object):
                 token=self.token,
                 zone=zone,
             )
-            
+
             if hasattr(response, 'data'):
                 print "Already has this node", domain
                 return True
@@ -62,8 +62,8 @@ class DynectAddNode(object):
                 return False
         else:
             return False
-    
-    
+
+
     def add_a_record(self, zone, domain, ip_address):
         response = self.client.service.CreateARecord(
             fqdn=domain,
@@ -72,7 +72,7 @@ class DynectAddNode(object):
             ttl=3600,
             zone=zone,
         )
-    
+
         if response.status == "incomplete":
             print "Waiting 10 sencods"
             time.sleep(10)
@@ -81,7 +81,7 @@ class DynectAddNode(object):
             print "Record add request failed!"
             self.printer.pprint(response)
             raise SystemExit
-    
+
         self.printer.pprint(response)
         print "add A record: %s -> %s" % (domain, ip_address)
 
@@ -93,33 +93,32 @@ class DynectAddNode(object):
             ttl=3600,
             zone=zone,
         )
-    
+
         if response.status == "incomplete":
             print "Waiting 10 sencods"
             time.sleep(10)
-    
+
         if response.status != 'success':
             print "Record add request failed!"
             self.printer.pprint(response)
             raise SystemExit
-    
+
         self.printer.pprint(response)
 
         print "add CNAME record: %s -> %s" % (domain, hostname)
-    
+
     def publish(self, zone):
         response = self.client.service.PublishZone(
             token=self.token,
             zone=zone,
         )
-     
+
         if response.status != 'success':
             print "Publish Zone request failed!"
             self.printer.pprint(response)
             raise SystemExit
         print "Publish Zone:", zone
-    
-    
+
     def log_out(self):
         response = self.client.service.SessionLogout(
             token=self.token,

@@ -64,9 +64,7 @@ class DynectAddNode(object):
             return False
     
     
-    def add_node(self, zone, domain, ip_address):
-        print zone
-        print domain
+    def add_a_record(self, zone, domain, ip_address):
         response = self.client.service.CreateARecord(
             fqdn=domain,
             rdata={'address': ip_address},
@@ -75,8 +73,30 @@ class DynectAddNode(object):
             zone=zone,
         )
     
-        while response.status == "incomplete":
-            time.sleep(1)
+        if response.status == "incomplete":
+            print "Waiting 10 sencods"
+            time.sleep(10)
+
+        if response.status != 'success':
+            print "Record add request failed!"
+            self.printer.pprint(response)
+            raise SystemExit
+    
+        self.printer.pprint(response)
+        print "add A record: %s -> %s" % (domain, ip_address)
+
+    def add_cname_record(self, zone, domain, hostname):
+        response = self.client.service.CreateCNAMERecord(
+            fqdn=domain,
+            rdata={'cname': hostname},
+            token=self.token,
+            ttl=3600,
+            zone=zone,
+        )
+    
+        if response.status == "incomplete":
+            print "Waiting 10 sencods"
+            time.sleep(10)
     
         if response.status != 'success':
             print "Record add request failed!"
@@ -84,8 +104,8 @@ class DynectAddNode(object):
             raise SystemExit
     
         self.printer.pprint(response)
-        print "add node %s -> %s" % (domain, ip_address)
-    
+
+        print "add CNAME record: %s -> %s" % (domain, hostname)
     
     def publish(self, zone):
         response = self.client.service.PublishZone(
@@ -122,15 +142,24 @@ def parse_args():
         help="dynect account's username")
     parser.add_option("-p", "--password", dest="password",
         help="dynect account's password")
+
     parser.add_option("-z", "--zone", dest="zone",
         help="zone you want to add in")
     parser.add_option("-d", "--domain", dest="domain",
         help="domain you want to add")
-    parser.add_option("-i", "--ip_address", dest="ip_address",
-        help="domain's ip address")
+
+    parser.add_option("-t", "--record_type", dest="record_type",
+        help="record's type must be A or CNAME")
+    parser.add_option("-v", "--record_value", dest="record_value",
+        help="value for record")
 
     (options, args) = parser.parse_args()
-    
+
+    options.record_type = options.record_type.upper()
+
+    if options.record_type not in ('A', 'CNAME'):
+        parser.error("record's type must be A or CNAME")
+
     return options
 
 if __name__ == '__main__':
@@ -138,7 +167,15 @@ if __name__ == '__main__':
 
     dynect_add_node = DynectAddNode()
     dynect_add_node.login(parser.customer, parser.username, parser.password)
+
     if not dynect_add_node.has_node(parser.zone, parser.domain):
-        dynect_add_node.add_node(parser.zone, parser.domain, parser.ip_address)
+        if parser.record_type == 'A':
+            dynect_add_node.add_a_record(parser.zone, parser.domain,
+                parser.record_value)
+        elif parser.record_type == 'CNAME':
+            dynect_add_node.add_cname_record(parser.zone, parser.domain,
+                parser.record_value)
+
         dynect_add_node.publish(parser.zone)
     dynect_add_node.log_out()
+

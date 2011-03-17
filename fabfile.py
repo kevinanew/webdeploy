@@ -8,6 +8,7 @@ Deploy Product Server:
     fab production_server package deploy restart_web_server
 """
 import os
+import shutil
 from fabric.api import run, local, require, sudo, get, put
 from fabric.state import env
 
@@ -15,6 +16,11 @@ from lib import utils
 from lib.rsync import Rsync, RsyncDir
 import settings
 
+
+def init():
+    if os.path.exists(settings.SCM_DEPLOY):
+        print "remove", settings.SCM_DEPLOY
+        shutil.rmtree(settings.SCM_DEPLOY)
 
 def staging_server():
     env.server_type = 'staging'

@@ -12,12 +12,14 @@ import shutil
 from fabric.api import run, local, require, sudo, get, put
 from fabric.state import env
 
-from lib import utils
-from lib.rsync import Rsync, RsyncDir
+from lib import utils, rsync
 import settings
 
 
 def init():
+    """
+    delete source code files in local pc
+    """
     if os.path.exists(settings.SCM_DEPLOY):
         print "remove", settings.SCM_DEPLOY
         shutil.rmtree(settings.SCM_DEPLOY)
@@ -129,16 +131,16 @@ def _upload_code():
     for host in env.hosts:
         run('test -d %s || mkdir -p %s' % (settings.PROJECT_REMOTE_DIR,
             settings.PROJECT_REMOTE_DIR))
-        rsync = Rsync(host=host, user=env.user,
+        _rsync = rsync.Rsync(host=host, user=env.user,
             local_dir=env.scm.get_package_dir(),
             remote_dir=settings.PROJECT_REMOTE_DIR)
 
-        rsync.set_password(env.password)
-        rsync.set_ssh_key_file(env.ssh_key_file)
-        rsync.add_ssh_port(env.port)
-        rsync.add_exclude_file('*.pyc')
-        rsync.add_exclude_file('*.swp')
-        rsync.run_cmd()
+        _rsync.set_password(env.password)
+        _rsync.set_ssh_key_file(env.ssh_key_file)
+        _rsync.add_ssh_port(env.port)
+        _rsync.add_exclude_file('*.pyc')
+        _rsync.add_exclude_file('*.swp')
+        _rsync.run_cmd()
 
 
 def _sync_project_files():
@@ -148,7 +150,7 @@ def _sync_project_files():
     require('hosts', provided_by=[staging_server, production_server])
     for sync_item in settings.PROJECT_SYNC_DIR:
         run('test -d %s || mkdir -p %s' % (sync_item['to'], sync_item['to']))
-        rsync_dir = RsyncDir(sync_item['from'], sync_item['to'])
+        rsync_dir = rsync.RsyncDir(sync_item['from'], sync_item['to'])
         if sync_item.get('exclude', None): 
             rsync_dir.add_exclude_dir(sync_item.get('exclude'))
         run(rsync_dir.get_cmd())
@@ -159,6 +161,11 @@ def _run_remote_deploy_cmd():
     for deploy_cmd in deploy_cmd_list:
         run(deploy_cmd)
 
+def _setup_crontab():
+    cron_file_path = getattr(settings, 'PROJECT_CRON_FILE')
+    if cron_file_path:
+        run('test -f {cron_file} && crontab {cron_file}'.format(
+            cron_file=cron_file_path))
 
 def deploy():
     """
@@ -169,6 +176,7 @@ def deploy():
 
     _upload_code()
     _sync_project_files()
+    _setup_crontab()
     _run_remote_deploy_cmd()
 
 

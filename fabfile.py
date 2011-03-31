@@ -143,6 +143,8 @@ def _sync_project_files():
     for sync_item in settings.PROJECT_SYNC_DIR:
         run('test -d %s || mkdir -p %s' % (sync_item['to'], sync_item['to']))
         rsync_dir = RsyncDir(sync_item['from'], sync_item['to'])
+        if sync_item.get('exclude', None): 
+            rsync_dir.add_exclude_dir(sync_item.get('exclude'))
         run(rsync_dir.get_cmd())
 
 
@@ -201,12 +203,13 @@ def restore_database():
 
 def restart_web_server():
     require('hosts', provided_by=[staging_server, production_server])
-    assert settings.WEB_SERVER_RESTART_CMD
-    print("Restart web server: " + settings.WEB_SERVER_RESTART_CMD)
+    assert settings.WEB_SERVER_RESTART_CMD_LIST
     if settings.IS_WEB_SERVER_RESTART_NEED_SUDO:
-        sudo(settings.WEB_SERVER_RESTART_CMD)
+        for server_restart_cmd in settings.WEB_SERVER_RESTART_CMD_LIST:
+            print "Restart web server:", server_restart_cmd
+            sudo(server_restart_cmd)
     else:
-        run(settings.WEB_SERVER_RESTART_CMD)
+        run(settings.WEB_SERVER_RESTART_CMD_LIST)
 
 
 def test():

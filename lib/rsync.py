@@ -80,6 +80,7 @@ class RsyncDir(object):
     def __init__(self, from_dir, to_dir):
         self.from_dir = self.normally_dir_path(from_dir)
         self.to_dir = self.normally_dir_path(to_dir)
+        self.exclude_dir_list = []
 
     def normally_dir_path(self, dir_path):
         if dir_path[-1] == '/':
@@ -87,6 +88,15 @@ class RsyncDir(object):
         else:
             return dir_path + '/'
 
+    def add_exclude_dir(self, exclude_dir):
+        self.exclude_dir_list.append(
+            '--exclude="%s"' % exclude_dir)
+
     def get_cmd(self):
-        return 'rsync -av %s %s' % (self.from_dir, self.to_dir)
+        _cmd = 'rsync -av %s %s' % (self.from_dir, self.to_dir)
+
+        if self.exclude_dir_list:
+            _cmd = "%s %s" % (_cmd, ' '.join(self.exclude_dir_list))
+
+        return _cmd
 

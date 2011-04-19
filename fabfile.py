@@ -162,7 +162,7 @@ def _run_remote_deploy_cmd():
         run(deploy_cmd)
 
 def _setup_crontab():
-    cron_file_path = getattr(settings, 'PROJECT_CRON_FILE')
+    cron_file_path = getattr(settings, 'PROJECT_CRON_FILE', '')
     if cron_file_path:
         run('test -f {cron_file} && crontab {cron_file}'.format(
             cron_file=cron_file_path))
@@ -218,12 +218,12 @@ def restore_database():
 def restart_web_server():
     require('hosts', provided_by=[staging_server, production_server])
     assert settings.WEB_SERVER_RESTART_CMD_LIST
-    if settings.IS_WEB_SERVER_RESTART_NEED_SUDO:
-        for server_restart_cmd in settings.WEB_SERVER_RESTART_CMD_LIST:
-            print "Restart web server:", server_restart_cmd
+    for server_restart_cmd in settings.WEB_SERVER_RESTART_CMD_LIST:
+        print "Restart web server:", server_restart_cmd
+        if settings.IS_WEB_SERVER_RESTART_NEED_SUDO:
             sudo(server_restart_cmd)
-    else:
-        run(settings.WEB_SERVER_RESTART_CMD_LIST)
+        else:
+            run(server_restart_cmd)
 
 
 def test():

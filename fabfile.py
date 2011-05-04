@@ -164,7 +164,7 @@ def _run_remote_deploy_cmd():
 def _setup_crontab():
     cron_file_path = getattr(settings, 'PROJECT_CRON_FILE', '')
     if cron_file_path:
-        run('test -f {cron_file} && crontab {cron_file}'.format(
+        run('test -f {cron_file} && crontab {cron_file} || echo "skip crontab"'.format(
             cron_file=cron_file_path))
 
 def deploy():

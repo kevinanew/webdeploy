@@ -24,6 +24,11 @@ def init():
         print "remove", settings.SCM_DEPLOY
         shutil.rmtree(settings.SCM_DEPLOY)
 
+
+######################################################################
+# Server settings
+######################################################################
+
 def staging_server():
     env.server_type = 'staging'
     env.hosts = settings.STAGING_SSH_HOSTS
@@ -65,6 +70,10 @@ def production_server():
 
     utils.print_server_info(env)
 
+
+######################################################################
+# Package Source code
+######################################################################
 
 def _scm_package():
     from lib import scm
@@ -114,6 +123,7 @@ def _scm_package_cmd():
     for package_cmd in cmd_list:
         local(package_cmd)
 
+
 def package():
     """
     Package source code from Source Control System
@@ -126,6 +136,10 @@ def package():
     _compile_templates()
     _scm_package_cmd()
 
+
+######################################################################
+# Deploy project
+######################################################################
 
 def _upload_code():
     for host in env.hosts:
@@ -162,10 +176,9 @@ def _run_remote_deploy_cmd():
         run(deploy_cmd)
 
 def _setup_crontab():
-    cron_file_path = getattr(settings, 'PROJECT_CRON_FILE', '')
-    if cron_file_path:
+    if settings.PROJECT_CRON_FILE:
         run('test -f {cron_file} && crontab {cron_file} || echo "skip crontab"'.format(
-            cron_file=cron_file_path))
+            cron_file=settings.PROJECT_CRON_FILE))
 
 def deploy():
     """
@@ -179,6 +192,10 @@ def deploy():
     _setup_crontab()
     _run_remote_deploy_cmd()
 
+
+######################################################################
+# Database management
+######################################################################
 
 def backup_database():
     require('database_host', provided_by=[staging_server, production_server])
@@ -215,6 +232,10 @@ def restore_database():
     run(database_restore.get_restore_database_cmd())
 
 
+######################################################################
+# Webserver management
+######################################################################
+
 def restart_web_server():
     require('hosts', provided_by=[staging_server, production_server])
     assert settings.WEB_SERVER_RESTART_CMD_LIST
@@ -225,6 +246,10 @@ def restart_web_server():
         else:
             run(server_restart_cmd)
 
+
+######################################################################
+# Testing
+######################################################################
 
 def test():
     require('hosts', provided_by=[staging_server, production_server])

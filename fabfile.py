@@ -141,13 +141,42 @@ def package():
 # Deploy project
 ######################################################################
 
+def _pip_install_virtualenv():
+    """
+    install python modules in virtualenv use pip
+    """
+    if not settings.PIP_REQUIREMENTS:
+        return
+
+    run("""cat << EOF > pip_requirements.txt
+%s
+EOF""" % settings.PIP_REQUIREMENTS.strip())
+    run('source %s/bin/activate && pip install -r pip_requirements.txt' % \
+        settings.PROJECT_REMOTE_VIRTUALENV_DIR)
+    run('rm pip_requirements.txt')
+
+
+def setup_virtualenv():
+    require('hosts', provided_by=[staging_server, production_server])
+
+    run(('test -d {virtualenv_dir} && echo "virtualenv existed" '
+        '|| virtualenv --no-site-packages {virtualenv_dir}').format(
+            virtualenv_dir=settings.PROJECT_REMOTE_VIRTUALENV_DIR))
+    _pip_install_virtualenv()
+
+
+def remove_virtualenv():
+    require('hosts', provided_by=[staging_server, production_server])
+    run('rm -rf %s' % settings.PROJECT_REMOTE_VIRTUALENV_DIR)
+
+
 def _upload_code():
     for host in env.hosts:
-        run('test -d %s || mkdir -p %s' % (settings.PROJECT_REMOTE_DIR,
-            settings.PROJECT_REMOTE_DIR))
+        run('test -d {code_dir} || mkdir -p {code_dir}'.format(
+            code_dir=settings.PROJECT_REMOTE_SOURCE_CODE_DIR))
         _rsync = rsync.Rsync(host=host, user=env.user,
             local_dir=env.scm.get_package_dir(),
-            remote_dir=settings.PROJECT_REMOTE_DIR)
+            remote_dir=settings.PROJECT_REMOTE_SOURCE_CODE_DIR)
 
         _rsync.set_password(env.password)
         _rsync.set_ssh_key_file(env.ssh_key_file)

@@ -26,10 +26,18 @@ LOCAL_DATABASE_BACKUP_DIR = '~/webdeploy_backup/database'
 ######################################################################
 # Project dir
 ######################################################################
-PROJECT_REMOTE_DIR = ''
+PROJECT_REMOTE_SOURCE_CODE_DIR = ''
 PROJECT_TEMPLATE_DIR_LIST = ()
 PROJECT_SYNC_DIR = (
 )
+
+######################################################################
+# Deploy command
+######################################################################
+PIP_REQUIREMENTS = """
+"""
+
+PROJECT_DEPLOY_CMD_LIST = ()
 
 ######################################################################
 # Web server

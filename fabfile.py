@@ -155,6 +155,15 @@ EOF""" % settings.PIP_REQUIREMENTS.strip())
         settings.PROJECT_REMOTE_VIRTUALENV_DIR)
     run('rm pip_requirements.txt')
 
+def pip_install():
+    """
+    pip install at localhost
+    """
+    local("""cat << EOF > pip_requirements.txt
+%s
+EOF""" % settings.PIP_REQUIREMENTS.strip())
+    local('pip install -r pip_requirements.txt')
+    local('rm pip_requirements.txt')
 
 def setup_virtualenv():
     require('hosts', provided_by=[staging_server, production_server])

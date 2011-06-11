@@ -6,10 +6,11 @@ import settings
 
 
 class DatabaseBackup(object):
-    def __init__(self, db_user, db_password, db_name):
+    def __init__(self, db_user, db_password, db_name, db_host):
         self.db_user = db_user
         self.db_password = db_password
         self.db_name = db_name
+        self.db_host = db_host
 
         self.sql_dump_filename = '%s.sql.gz' % datetime.now().strftime(
             '%F_%Hh%Mm%Ss')
@@ -39,7 +40,7 @@ class DatabaseBackup(object):
 
     def get_backup_cmd(self):
         mysql_backup_cmd_template = (
-            'mysqldump -u {db_user} -p"{db_password}" {db_name} '
+            'mysqldump -h {db_host} -u {db_user} -p"{db_password}" {db_name} '
             ' --single-transaction | gzip -9 > {backup_file}')
 
         return mysql_backup_cmd_template.format(

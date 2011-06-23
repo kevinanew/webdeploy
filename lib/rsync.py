@@ -1,7 +1,12 @@
 # coding: utf-8
 import os
+import shlex
+import subprocess
+
 from lib import pexpect
 
+
+RETURN_CODE_SECUESS = 0
 
 class Rsync(object):
     def __init__(self, host, user, local_dir, remote_dir):
@@ -14,6 +19,7 @@ class Rsync(object):
 
         self.ssh_cmd = ['ssh']
         self.exclude_file_list = []
+        self.max_try_time = 5
 
     def add_ssh_key(self, ssh_key_file):
         self.ssh_cmd.append('-i %s' % ssh_key_file)
@@ -53,10 +59,24 @@ class Rsync(object):
         rsync_cmd.append(self.get_sync_dir())
         rsync_cmd.append(self.get_exclude_file())
         rsync_cmd.append('-rlvxz')
+        rsync_cmd.append('--partial')
         rsync_cmd.append('--delete')
-        rsync_cmd.append('--timeout=60')
+        rsync_cmd.append('--timeout=120')
 
         return " ".join(rsync_cmd)
+
+    def _run_command(self, command):
+        try_time = 0
+        while try_time < self.max_try_time:
+            process = subprocess.Popen(shlex.split(command))
+            return_code = process.wait()
+            if return_code == RETURN_CODE_SECUESS:
+                break
+            else:
+                try_time += 1
+                print "Try again ... "
+        else:
+            raise Exception("Run command fail")
 
     def run_cmd(self):
         rsync_cmd = self.get_cmd()
@@ -64,7 +84,7 @@ class Rsync(object):
 
         if self.ssh_key_file:
             print "Rsync: use ssh key"
-            os.system(rsync_cmd)
+            self._run_command(rsync_cmd)
         elif self.password:
             print "Rsync: use password"
             rsync_process = pexpect.spawn(rsync_cmd)
@@ -73,7 +93,7 @@ class Rsync(object):
             rsync_process.expect(pexpect.EOF)
         else:
             print "Rsync: no password and key"
-            os.system(rsync_cmd)
+            self._run_command(rsync_cmd)
 
 
 class RsyncDir(object):

@@ -17,20 +17,20 @@ from lib import utils, rsync
 import settings
 
 
-def init():
+def default_deploy():
     """
-    delete source code files in local pc
+    print a default deploy command
     """
-    if os.path.exists(settings.SCM_DEPLOY):
-        print "remove", settings.SCM_DEPLOY
-        shutil.rmtree(settings.SCM_DEPLOY)
-
+    print "deploy command:", settings.DEFAULT_DEPLOY_CMD
 
 ######################################################################
 # Server settings
 ######################################################################
 
 def staging_server():
+    """
+    deployment at staging server
+    """
     env.server_type = 'staging'
     env.hosts = settings.STAGING_SSH_HOSTS
     env.user = settings.STAGING_SSH_USER
@@ -52,6 +52,9 @@ def staging_server():
 
 
 def production_server():
+    """
+    deployment at production server
+    """
     env.server_type = 'production'
     env.hosts = settings.PRODUCTION_SSH_HOSTS
     env.user = settings.PRODUCTION_SSH_USER
@@ -167,6 +170,9 @@ EOF""" % settings.PIP_REQUIREMENTS.strip())
     local('rm pip_requirements.txt')
 
 def setup_virtualenv():
+    """
+    build virtualenv and install moduels use pip
+    """
     require('hosts', provided_by=[staging_server, production_server])
 
     run(('test -d {virtualenv_dir} && echo "virtualenv existed" '
@@ -176,6 +182,10 @@ def setup_virtualenv():
 
 
 def remove_virtualenv():
+    """
+    delete virtualenv, then you can build a new virtualenv use setup_virtualenv
+    command
+    """
     require('hosts', provided_by=[staging_server, production_server])
     run('rm -rf %s' % settings.PROJECT_REMOTE_VIRTUALENV_DIR)
 
@@ -238,6 +248,9 @@ def deploy():
 ######################################################################
 
 def backup_database():
+    """
+    backup your database
+    """
     require('database_host', provided_by=[staging_server, production_server])
 
     from lib.database_backup import DatabaseBackup
@@ -256,6 +269,9 @@ def backup_database():
 
 
 def restore_database():
+    """
+    restore a database backup file, please use backup_database command first
+    """
     require('database_host', provided_by=[staging_server])
 
     from lib.database_restore import DatabaseRestore
@@ -277,6 +293,9 @@ def restore_database():
 ######################################################################
 
 def restart_web_server():
+    """
+    restart web server, you must add restart command in project_settings.py
+    """
     require('hosts', provided_by=[staging_server, production_server])
     assert settings.WEB_SERVER_RESTART_CMD_LIST
     for server_restart_cmd in settings.WEB_SERVER_RESTART_CMD_LIST:
@@ -341,6 +360,18 @@ def setup_project():
     _setup_dns()
     _setup_mysql()
     _setup_nginx()
+
+
+######################################################################
+# Misc 
+######################################################################
+def init():
+    """
+    delete source code files in local pc
+    """
+    if os.path.exists(settings.SCM_DEPLOY):
+        print "remove", settings.SCM_DEPLOY
+        shutil.rmtree(settings.SCM_DEPLOY)
 
 
 ######################################################################

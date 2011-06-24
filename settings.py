@@ -6,7 +6,10 @@
 # in {ROOT}/project_settings.py
 #
 
-PROJECT_NAME = ''
+######################################################################
+# webdeploy
+######################################################################
+DEFAULT_DEPLOY_CMD = 'fab test'
 
 ######################################################################
 # SCM
@@ -26,8 +29,9 @@ REMOTE_DATABASE_RESTORE_DIR = '~/database_restore'
 LOCAL_DATABASE_BACKUP_DIR = '~/webdeploy_backup/database'
 
 ######################################################################
-# Project dir
+# Project
 ######################################################################
+PROJECT_NAME = ''
 PROJECT_REMOTE_SOURCE_CODE_DIR = ''
 PROJECT_TEMPLATE_DIR_LIST = ()
 PROJECT_SYNC_DIR = (

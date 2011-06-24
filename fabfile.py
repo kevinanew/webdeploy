@@ -11,6 +11,7 @@ import os
 import shutil
 from fabric.api import run, local, require, sudo, get, put
 from fabric.state import env
+from fabric.contrib import files
 
 from lib import utils, rsync
 import settings
@@ -62,11 +63,11 @@ def production_server():
     # this will use by some tool like rsync
     env.ssh_key_file = ssh_key_path
 
-    env.database_host = settings.PRODUCTION_DATABASE_HOST 
-    env.database_user = settings.PRODUCTION_DATABASE_USER 
+    env.database_host = settings.PRODUCTION_DATABASE_HOST
+    env.database_user = settings.PRODUCTION_DATABASE_USER
     env.database_password = settings.PRODUCTION_DATABASE_PASSWORD
     env.database_name = settings.PRODUCTION_DATABASE_NAME
-    env.database_port = settings.PRODUCTION_DATABASE_PORT 
+    env.database_port = settings.PRODUCTION_DATABASE_PORT
 
     utils.print_server_info(env)
 
@@ -130,8 +131,8 @@ def package():
     """
     _scm_package()
     _compress_templates()
-    # _compile_templates must after compress_templates, 
-    # becuase _compile_templates will generate html comment that will be 
+    # _compile_templates must after compress_templates,
+    # becuase _compile_templates will generate html comment that will be
     # clean by _compress_templates
     _compile_templates()
     _scm_package_cmd()
@@ -157,7 +158,7 @@ EOF""" % settings.PIP_REQUIREMENTS.strip())
 
 def pip_install():
     """
-    pip install at localhost
+    install all modules use pip at localhost
     """
     local("""cat << EOF > pip_requirements.txt
 %s
@@ -180,6 +181,7 @@ def remove_virtualenv():
 
 
 def _upload_code():
+    assert settings.PROJECT_REMOTE_SOURCE_CODE_DIR
     for host in env.hosts:
         run('test -d {code_dir} || mkdir -p {code_dir}'.format(
             code_dir=settings.PROJECT_REMOTE_SOURCE_CODE_DIR))
@@ -203,7 +205,7 @@ def _sync_project_files():
     for sync_item in settings.PROJECT_SYNC_DIR:
         run('test -d %s || mkdir -p %s' % (sync_item['to'], sync_item['to']))
         rsync_dir = rsync.RsyncDir(sync_item['from'], sync_item['to'])
-        if sync_item.get('exclude', None): 
+        if sync_item.get('exclude', None):
             rsync_dir.add_exclude_dir(sync_item.get('exclude'))
         run(rsync_dir.get_cmd())
 
@@ -241,7 +243,7 @@ def backup_database():
     from lib.database_backup import DatabaseBackup
     # FIXME database_host is not used ???
     database_backup = DatabaseBackup(env.database_user, env.database_password,
-        env.database_name, env.database_host)
+        env.database_name)
 
     utils.make_dir_if_not_exists(database_backup.get_remote_backup_dir())
     database_backup.make_local_backup_file_path()
@@ -286,6 +288,62 @@ def restart_web_server():
 
 
 ######################################################################
+# Server setup
+######################################################################
+def _setup_dns():
+    if settings.DNS_SETUP_CMD:
+        local(settings.DNS_SETUP_CMD)
+
+def _setup_mysql():
+    mysql_cmd_template = 'mysql -u{username} -p{password} -e "%s"'.format(
+        username=settings.MYSQL_ROOT_USER,
+        password=settings.MYSQL_ROOT_PASSWORD)
+    create_db_sql = ('CREATE DATABASE IF NOT EXISTS {dbname} CHARACTER SET utf8'
+        ' COLLATE utf8_general_ci;').format(dbname=settings.MYSQL_DBNAME)
+    run(mysql_cmd_template % create_db_sql)
+
+    user_add_sql = ("grant ALL PRIVILEGES on {dbname}.* to "
+        "'{username}'@'localhost' "
+        "IDENTIFIED BY '{password}';").format(dbname=settings.MYSQL_DBNAME,
+            username=settings.MYSQL_USER,
+            password=settings.MYSQL_USER_PASSWORD)
+    run(mysql_cmd_template % user_add_sql)
+
+    user_add_sql = ("grant ALL PRIVILEGES on {dbname}.* to "
+        "'{username}'@'127.0.0.1' "
+        "IDENTIFIED BY '{password}';").format(dbname=settings.MYSQL_DBNAME,
+            username=settings.MYSQL_USER,
+            password=settings.MYSQL_USER_PASSWORD)
+    run(mysql_cmd_template % user_add_sql)
+
+def _setup_nginx():
+    # upload config file and link to nginx enabled dir
+    nginx_config_path = '/etc/nginx/sites-available/%(dns_sub_domain)s.%(dns_domain)s.conf' % {
+        'dns_sub_domain': settings.DNS_SUB_DOMAIN,
+        'dns_domain': settings.DNS_DOMAIN
+        }
+    if not files.exists(nginx_config_path, use_sudo=True):
+        files.append(filename=nginx_config_path,
+            text=utils.get_config_file('nginx.tpl'), use_sudo=True)
+        sudo("""ln -s /etc/nginx/sites-available/%(dns_sub_domain)s.%(dns_domain)s.conf /etc/nginx/sites-enabled/%(dns_sub_domain)s.%(dns_domain)s.conf
+""" % {
+            'dns_sub_domain': settings.DNS_SUB_DOMAIN,
+            'dns_domain': settings.DNS_DOMAIN,
+            'config_content': config_content})
+        sudo('/etc/init.d/nginx restart')
+
+def setup_project():
+    """
+    add DNS, web server config, mysql database, mysql user and etc
+    """
+    require('hosts', provided_by=[staging_server, production_server])
+
+    _setup_dns()
+    _setup_mysql()
+    _setup_nginx()
+
+
+######################################################################
 # Testing
 ######################################################################
 
@@ -293,4 +351,3 @@ def test():
     require('hosts', provided_by=[staging_server, production_server])
 
     run('whoami')
-

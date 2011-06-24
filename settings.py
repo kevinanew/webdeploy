@@ -6,13 +6,15 @@
 # in {ROOT}/project_settings.py
 #
 
+PROJECT_NAME = ''
+
 ######################################################################
 # SCM
 ######################################################################
-SCM_NAME = 'mercury'
-SCM_REPOSITORY_URL = ''
-SCM_DEPLOY = 'deploy_code'
+SCM_NAME = 'mercury'   # mercury or git
+SCM_REPOSITORY_URL = ''  # for example: ssh://kevinanew@foo.com/webdeploy.git
 SCM_PASSWORD = ''
+SCM_DEPLOY = 'deploy_code'   # default value
 SCM_PACKAGE_CMD_LIST_FOR_STAGING = ()
 SCM_PACKAGE_CMD_LIST_FOR_PRODUCT = ()
 
@@ -42,13 +44,15 @@ PROJECT_DEPLOY_CMD_LIST = ()
 ######################################################################
 # Web server
 ######################################################################
+WEB_SERVER_FASTCGI_PORT = ''
+
 WEB_SERVER_RESTART_CMD_LIST = ''
 IS_WEB_SERVER_RESTART_NEED_SUDO = True
 
 ######################################################################
 # Cron
 ######################################################################
-PROJECT_CRON_FILE = 'crontab.txt'
+PROJECT_CRON_FILE = ''  # corntab config file
 
 ######################################################################
 # Staging server settings
@@ -82,6 +86,15 @@ PRODUCTION_DATABASE_USER = ''
 PRODUCTION_DATABASE_PASSWORD = ''
 PRODUCTION_DATABASE_NAME = ''
 PRODUCTION_DATABASE_PORT = ''
+
+
+######################################################################
+# DNS settings
+######################################################################
+DNS_SETUP_CMD = ''
+DNS_SUB_DOMAIN = ''
+DNS_DOMAIN = ''
+DNS_HOST_IP = ''
 
 
 ######################################################################

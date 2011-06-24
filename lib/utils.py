@@ -3,6 +3,7 @@ import os
 import re
 
 from fabric.api import run
+import settings
 
 
 def print_server_info(env):
@@ -53,3 +54,14 @@ def get_files_in_dir(root_dir):
     for root, dirs, files in os.walk(root_dir):
         for file_path in files:
             yield os.path.abspath(os.path.join(root, file_path))
+
+
+def get_config_file(filename):
+    config_template_dir = os.path.abspath(
+        os.path.join(os.path.dirname(__file__), '../config_template'))
+    config_template_file = os.path.join(config_template_dir, filename)
+    config_template_content = open(config_template_file, 'r').read()
+
+    config_context = dict([(settings_name, getattr(settings, settings_name))
+        for settings_name in dir(settings)])
+    return config_template_content % config_context

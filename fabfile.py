@@ -349,7 +349,7 @@ def _setup_nginx():
             'dns_sub_domain': settings.DNS_SUB_DOMAIN,
             'dns_domain': settings.DNS_DOMAIN,
             'config_content': config_content})
-        sudo('/etc/init.d/nginx restart')
+        sudo('/etc/init.d/nginx reload')
 
 def setup_project():
     """

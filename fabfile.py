@@ -373,6 +373,8 @@ def init():
         print "remove", settings.SCM_DEPLOY
         shutil.rmtree(settings.SCM_DEPLOY)
 
+def help():
+    print settings.HELP_TEXT
 
 ######################################################################
 # Testing

@@ -256,7 +256,7 @@ def backup_database():
     from lib.database_backup import DatabaseBackup
     # FIXME database_host is not used ???
     database_backup = DatabaseBackup(env.database_user, env.database_password,
-        env.database_name)
+        env.database_name, env.database_host)
 
     utils.make_dir_if_not_exists(database_backup.get_remote_backup_dir())
     database_backup.make_local_backup_file_path()

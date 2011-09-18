@@ -298,9 +298,9 @@ def restart_web_server():
     """
     require('hosts', provided_by=[staging_server, production_server])
     assert settings.WEB_SERVER_RESTART_CMD_LIST
-    for server_restart_cmd in settings.WEB_SERVER_RESTART_CMD_LIST:
+    for server_restart_cmd, is_need_sudo in settings.WEB_SERVER_RESTART_CMD_LIST:
         print "Restart web server:", server_restart_cmd
-        if settings.IS_WEB_SERVER_RESTART_NEED_SUDO:
+        if is_need_sudo:
             sudo(server_restart_cmd)
         else:
             run(server_restart_cmd)
@@ -348,7 +348,7 @@ def _setup_nginx():
 """ % {
             'dns_sub_domain': settings.DNS_SUB_DOMAIN,
             'dns_domain': settings.DNS_DOMAIN,
-            'config_content': config_content})
+            })
         sudo('/etc/init.d/nginx reload')
 
 def setup_project():

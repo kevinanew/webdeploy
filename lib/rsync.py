@@ -10,7 +10,11 @@ RETURN_CODE_SECUESS = 0
 
 class Rsync(object):
     def __init__(self, host, user, local_dir, remote_dir):
-        self.host = host
+        if ':' in host:
+            self.host, port = host.split(':')
+        else:
+            self.host = host
+            port = '22'
         self.user = user
         self.password = ''
         self.ssh_key_file = ''
@@ -20,6 +24,7 @@ class Rsync(object):
         self.ssh_cmd = ['ssh']
         self.exclude_file_list = []
         self.max_try_time = 5
+        self.add_ssh_port(port)
 
     def add_ssh_key(self, ssh_key_file):
         self.ssh_cmd.append('-i %s' % ssh_key_file)
@@ -50,7 +55,6 @@ class Rsync(object):
         self.password = password
 
     def set_ssh_key_file(self, ssh_key_file):
-        ssh_key_file_normal_path = os.path.expanduser(ssh_key_file)
         self.ssh_key_file = ssh_key_file
 
     def get_cmd(self):

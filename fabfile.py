@@ -40,7 +40,12 @@ def staging_server():
     if ssh_key_path:
         env.key_filename = [ssh_key_path]
     # this will use by some tool like rsync
+    # FIXME: how it work if every server's ssh key is different
     env.ssh_key_file = ssh_key_path
+
+    ssh_public_key_path = os.path.expanduser(settings.STAGING_SSH_PUBLIC_KEY)
+    if ssh_public_key_path:
+        env.public_key_filename = ssh_public_key_path
 
     env.database_host = settings.STAGING_DATABASE_HOST
     env.database_user = settings.STAGING_DATABASE_USER
@@ -64,7 +69,12 @@ def production_server():
     if ssh_key_path:
         env.key_filename = [ssh_key_path]
     # this will use by some tool like rsync
+    # FIXME: how it work if every server's ssh key is different
     env.ssh_key_file = ssh_key_path
+
+    ssh_public_key_path = os.path.expanduser(settings.PRODUCTION_SSH_PUBLIC_KEY)
+    if ssh_public_key_path:
+        env.public_key_filename = ssh_public_key_path
 
     env.database_host = settings.PRODUCTION_DATABASE_HOST
     env.database_user = settings.PRODUCTION_DATABASE_USER
@@ -174,9 +184,11 @@ def setup_virtualenv():
     build virtualenv and install moduels use pip
     """
     require('hosts', provided_by=[staging_server, production_server])
+    python_path = getattr(settings, 'PYTHON_PATH', '/usr/bin/python2.6')
 
     run(('test -d {virtualenv_dir} && echo "virtualenv existed" '
-        '|| virtualenv --no-site-packages {virtualenv_dir}').format(
+        '|| virtualenv -p {python_path} --no-site-packages {virtualenv_dir}'
+        ).format(python_path=python_path,
             virtualenv_dir=settings.PROJECT_REMOTE_VIRTUALENV_DIR))
     _pip_install_virtualenv()
 
@@ -190,6 +202,19 @@ def remove_virtualenv():
     run('rm -rf %s' % settings.PROJECT_REMOTE_VIRTUALENV_DIR)
 
 
+def backup_code():
+    assert settings.PROJECT_REMOTE_SOURCE_CODE_DIR
+    for host in env.hosts:
+        # delete old backup
+        run('rm -rf {code_dir}.bak'.format(
+            code_dir=settings.PROJECT_REMOTE_SOURCE_CODE_DIR))
+
+        # make new backup
+        run('test -d {code_dir} && cp -r {code_dir} {code_dir}.bak ' \
+            '|| echo "skip backup"'.format(
+            code_dir=settings.PROJECT_REMOTE_SOURCE_CODE_DIR))
+
+
 def _upload_code():
     assert settings.PROJECT_REMOTE_SOURCE_CODE_DIR
     for host in env.hosts:
@@ -201,7 +226,6 @@ def _upload_code():
 
         _rsync.set_password(env.password)
         _rsync.set_ssh_key_file(env.ssh_key_file)
-        _rsync.add_ssh_port(env.port)
         _rsync.add_exclude_file('*.pyc')
         _rsync.add_exclude_file('*.swp')
         _rsync.run_cmd()
@@ -237,6 +261,7 @@ def deploy():
     require('hosts', provided_by=[staging_server, production_server])
     require('scm', provided_by=[package])
 
+    backup_code()
     _upload_code()
     _sync_project_files()
     _setup_crontab()
@@ -254,7 +279,6 @@ def backup_database():
     require('database_host', provided_by=[staging_server, production_server])
 
     from lib.database_backup import DatabaseBackup
-    # FIXME database_host is not used ???
     database_backup = DatabaseBackup(env.database_user, env.database_password,
         env.database_name, env.database_host)
 
@@ -335,32 +359,67 @@ def _setup_mysql():
             password=settings.MYSQL_USER_PASSWORD)
     run(mysql_cmd_template % user_add_sql)
 
-def _setup_nginx():
-    # upload config file and link to nginx enabled dir
-    nginx_config_path = '/etc/nginx/sites-available/%(dns_sub_domain)s.%(dns_domain)s.conf' % {
-        'dns_sub_domain': settings.DNS_SUB_DOMAIN,
-        'dns_domain': settings.DNS_DOMAIN
-        }
-    if not files.exists(nginx_config_path, use_sudo=True):
-        files.append(filename=nginx_config_path,
-            text=utils.get_config_file('nginx.tpl'), use_sudo=True)
-        sudo("""ln -s /etc/nginx/sites-available/%(dns_sub_domain)s.%(dns_domain)s.conf /etc/nginx/sites-enabled/%(dns_sub_domain)s.%(dns_domain)s.conf
-""" % {
-            'dns_sub_domain': settings.DNS_SUB_DOMAIN,
-            'dns_domain': settings.DNS_DOMAIN,
-            })
-        sudo('/etc/init.d/nginx reload')
-
 def setup_project():
     """
     add DNS, web server config, mysql database, mysql user and etc
     """
+    # TODO: setup_project is not used, please move code to setup_server
     require('hosts', provided_by=[staging_server, production_server])
 
     _setup_dns()
     _setup_mysql()
-    _setup_nginx()
+    #_setup_nginx()
 
+
+def _setup_server_config():
+    # TODO: set /etc config files
+    def get_local_config_files():
+        local_etc_dir = os.path.join(settings.LOCAL_SERVER_CONFIG_DIR, 'etc')
+        for _root, _dirs, _files in os.walk(local_etc_dir):
+            for _file in _files:
+                yield os.path.join(_root, _file)
+
+    is_update = False
+    for local_config_file in get_local_config_files():
+        remote_config_file = local_config_file.replace(
+            settings.LOCAL_SERVER_CONFIG_DIR, '')
+
+        if not utils.is_same_content(local_config_file, remote_config_file):
+            is_update = True
+            utils.backup(remote_config_file, use_sudo=True)
+            utils.upload(local_config_file, remote_config_file,
+                use_sudo=True, mode=0644)
+
+    if is_update:
+        # FIXME: if everything is right, use enable auto reload
+        #sudo('/etc/init.d/nginx reload')
+
+        # use this because I need debug on product server
+        print 'Please run "/etc/init.d/nginx reload" manually'
+
+def _setup_server_cmd():
+    for cmd, is_sudo in settings.SERVER_CONFIG_CMD:
+        if is_sudo:
+            sudo(cmd)
+        else:
+            run(cmd)
+
+def setup_server():
+    _setup_server_cmd()
+    _setup_server_config()
+
+def upload_ssh_key():
+    run('test -d ~/.ssh || mkdir ~/.ssh')
+    run('test -e ~/.ssh/authorized_keys || touch ~/.ssh/authorized_keys')
+    run('chmod 600 ~/.ssh/authorized_keys')
+    
+    ssh_public_key_content = open(env.public_key_filename, 'rb').read().strip()
+    authorized_keys_content = run('cat ~/.ssh/authorized_keys')
+    if ssh_public_key_content in authorized_keys_content:
+        print "SSH public key already added"
+    else:
+        files.append('~/.ssh/authorized_keys', ssh_public_key_content)
+        print "SSH public key added"
 
 ######################################################################
 # Misc 

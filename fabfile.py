@@ -389,13 +389,11 @@ def _setup_server_config():
             utils.backup(remote_config_file, use_sudo=True)
             utils.upload(local_config_file, remote_config_file,
                 use_sudo=True, mode=0644)
+            sudo('chown %s %s' % (env.user, remote_config_file))
 
     if is_update:
-        # FIXME: if everything is right, use enable auto reload
-        #sudo('/etc/init.d/nginx reload')
-
-        # use this because I need debug on product server
-        print 'Please run "/etc/init.d/nginx reload" manually'
+        print 'nginx config is update'
+        print 'Please run "/etc/init.d/nginx reload"'
 
 def _setup_server_cmd():
     for cmd, is_sudo in settings.SERVER_CONFIG_CMD:

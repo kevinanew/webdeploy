@@ -392,8 +392,10 @@ def _setup_server_config():
             sudo('chown %s %s' % (env.user, remote_config_file))
 
     if is_update:
-        print 'nginx config is update'
-        print 'Please run "/etc/init.d/nginx reload"'
+        print 'Config files are updated'
+        print 'IMPORT:'
+        print ' run "/etc/init.d/nginx reload" only if fastcgi port is static'
+        print ' if not, please re-deployment project then restart server'
 
 def _setup_server_cmd():
     for cmd, is_sudo in settings.SERVER_CONFIG_CMD:
@@ -403,6 +405,9 @@ def _setup_server_cmd():
             run(cmd)
 
 def setup_server():
+    """
+    deployment nginx, memcached and other server software's config
+    """
     _setup_server_cmd()
     _setup_server_config()
 

@@ -5,6 +5,7 @@ import os
 class ScmBase(object):
     def __init__(self, repository_url, deploy_dir):
         self.repository_url = repository_url
+        self.branch = None
         self.deploy_dir = os.path.abspath(deploy_dir)
         self.work_dir = os.path.join(self.deploy_dir, 'working')
         self.export_dir = os.path.join(self.deploy_dir, "working.export")
@@ -19,6 +20,9 @@ class ScmBase(object):
 
     def set_password(self, password):
         self.password = password
+
+    def set_branch(self, branch):
+        self.branch = branch
 
     def run_cmd(self, cmd):
         print("== dir: %s ==" % os.getcwd())

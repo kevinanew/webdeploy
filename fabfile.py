@@ -94,6 +94,10 @@ def _scm_package():
     scm_class = scm.get_scm_class(settings.SCM_NAME)
     _scm = scm_class(settings.SCM_REPOSITORY_URL, settings.SCM_DEPLOY)
     _scm.set_password(settings.SCM_PASSWORD)
+
+    branch = getattr(settings, 'SCM_BRANCH', None)
+    _scm.set_branch(branch)
+
     _scm.package()
     env.scm = _scm
 
@@ -184,7 +188,7 @@ def setup_virtualenv():
     build virtualenv and install moduels use pip
     """
     require('hosts', provided_by=[staging_server, production_server])
-    python_path = getattr(settings, 'PYTHON_PATH', '/usr/bin/python2.6')
+    python_path = getattr(settings, 'PYTHON_PATH', '/usr/bin/python2.7')
 
     run(('test -d {virtualenv_dir} && echo "virtualenv existed" '
         '|| virtualenv -p {python_path} --no-site-packages {virtualenv_dir}'

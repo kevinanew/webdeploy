@@ -29,8 +29,13 @@ class Git(ScmBase):
             self._clone()
 
     def _clone(self):
-        git_clone_cmd = 'git clone {repository_url} {work_dir}'.format(
-            **self.__dict__)
+        if self.branch:
+            git_clone_cmd = 'git clone' + \
+                ' -b {branch} {repository_url} {work_dir}'.format(
+                    **self.__dict__)
+        else:
+            git_clone_cmd = 'git clone {repository_url} {work_dir}'.format(
+                **self.__dict__)
 
         self.run_cmd(git_clone_cmd)
 

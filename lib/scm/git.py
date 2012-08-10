@@ -38,13 +38,24 @@ class Git(ScmBase):
                 **self.__dict__)
 
         self.run_cmd(git_clone_cmd)
+        self._update_submodules()
 
     def _update(self):
         os.chdir(self.work_dir)
 
         self.run_cmd('git pull')
+        self._update_submodules()
+
+    def _update_submodules(self):
+        update_all_submodels_cmd = ('cd {work_dir} && '
+            'git submodule init && git submodule update && '
+            'git submodule foreach git pull -q origin master').format(
+                **self.__dict__)
+
+        self.run_cmd(update_all_submodels_cmd)
 
     def _export(self):
-        self.run_cmd(('cd {work_dir} && '
-            'git checkout-index -a -f --prefix={export_dir}/').format(
-                **self.__dict__))
+        export_cmd = ('rsync -av {work_dir}/ {export_dir} --exclude=".git"'
+            ' > /dev/null').format(**self.__dict__)
+        self.run_cmd(export_cmd)
+

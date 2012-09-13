@@ -1,11 +1,7 @@
 # coding: utf8
 """
 Useage:
-Deploy Staging Server:
-    fab staging_server package deploy restart_web_server
-
-Deploy Product Server:
-    fab production_server package deploy restart_web_server
+    fab help
 """
 import os
 import shutil
@@ -16,6 +12,13 @@ from fabric.contrib import files
 from lib import utils, rsync
 import settings
 
+
+def help():
+    help_doc = settings.__doc__.strip()
+    if help_doc:
+        print help_doc
+    else:
+        print "Write down help doc before you can read it"
 
 def default_deploy():
     """
@@ -219,20 +222,30 @@ def backup_code():
             code_dir=settings.PROJECT_REMOTE_SOURCE_CODE_DIR))
 
 
-def _upload_code():
+def _upload_code_in_tmp_dir():
     assert settings.PROJECT_REMOTE_SOURCE_CODE_DIR
+    uploading_code_dir = '%s.uploading' % settings.PROJECT_REMOTE_SOURCE_CODE_DIR
     for host in env.hosts:
         run('test -d {code_dir} || mkdir -p {code_dir}'.format(
-            code_dir=settings.PROJECT_REMOTE_SOURCE_CODE_DIR))
+            code_dir=uploading_code_dir))
         _rsync = rsync.Rsync(host=host, user=env.user,
             local_dir=env.scm.get_package_dir(),
-            remote_dir=settings.PROJECT_REMOTE_SOURCE_CODE_DIR)
-
+            remote_dir=uploading_code_dir)
+        _rsync.timeout = 240
+        _rsync.max_try_time = 10
         _rsync.set_password(env.password)
         _rsync.set_ssh_key_file(env.ssh_key_file)
         _rsync.add_exclude_file('*.pyc')
         _rsync.add_exclude_file('*.swp')
         _rsync.run_cmd()
+
+
+def _sync_uploading_code_dir():
+    assert settings.PROJECT_REMOTE_SOURCE_CODE_DIR
+    uploading_code_dir = '%s.uploading' % settings.PROJECT_REMOTE_SOURCE_CODE_DIR
+    rsync_cmd = 'rsync -rlvxc "%s/" "%s/"' % (uploading_code_dir, settings.PROJECT_REMOTE_SOURCE_CODE_DIR)
+    print "cmd:,", rsync_cmd
+    run(rsync_cmd)
 
 
 def _sync_project_files():
@@ -265,11 +278,13 @@ def deploy():
     require('hosts', provided_by=[staging_server, production_server])
     require('scm', provided_by=[package])
 
+    _upload_code_in_tmp_dir()
     backup_code()
-    _upload_code()
-    _sync_project_files()
+    _sync_uploading_code_dir()
+
     _setup_crontab()
     _run_remote_deploy_cmd()
+    _sync_project_files()
 
 
 ######################################################################

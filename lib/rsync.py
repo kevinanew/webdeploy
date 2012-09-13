@@ -25,6 +25,7 @@ class Rsync(object):
         self.exclude_file_list = []
         self.max_try_time = 5
         self.add_ssh_port(port)
+        self.timeout = 120
 
     def add_ssh_key(self, ssh_key_file):
         self.ssh_cmd.append('-i %s' % ssh_key_file)
@@ -62,10 +63,10 @@ class Rsync(object):
         rsync_cmd.append("-e '%s'" % self.get_ssh_cmd())
         rsync_cmd.append(self.get_sync_dir())
         rsync_cmd.append(self.get_exclude_file())
-        rsync_cmd.append('-rlvxz')
+        rsync_cmd.append('-rlvxzc')
         rsync_cmd.append('--partial')
         rsync_cmd.append('--delete')
-        rsync_cmd.append('--timeout=120')
+        rsync_cmd.append('--timeout=%s' % self.timeout)
 
         return " ".join(rsync_cmd)
 
@@ -117,7 +118,7 @@ class RsyncDir(object):
             '--exclude="%s"' % exclude_dir)
 
     def get_cmd(self):
-        _cmd = 'rsync -av %s %s' % (self.from_dir, self.to_dir)
+        _cmd = 'rsync -avc %s %s' % (self.from_dir, self.to_dir)
 
         if self.exclude_dir_list:
             _cmd = "%s %s" % (_cmd, ' '.join(self.exclude_dir_list))

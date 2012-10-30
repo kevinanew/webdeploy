@@ -352,11 +352,16 @@ def restart_web_server():
 ######################################################################
 # Server setup
 ######################################################################
-def _setup_dns():
-    if settings.DNS_SETUP_CMD:
-        local(settings.DNS_SETUP_CMD)
+def run_setup_server_cmd():
+    for cmd, is_sudo in settings.SERVER_CONFIG_CMD:
+        if is_sudo:
+            sudo(cmd)
+        else:
+            run(cmd)
+
 
 def _setup_mysql():
+    require('hosts', provided_by=[staging_server, production_server])
     mysql_cmd_template = 'mysql -u{username} -p{password} -e "%s"'.format(
         username=settings.MYSQL_ROOT_USER,
         password=settings.MYSQL_ROOT_PASSWORD)
@@ -378,19 +383,8 @@ def _setup_mysql():
             password=settings.MYSQL_USER_PASSWORD)
     run(mysql_cmd_template % user_add_sql)
 
-def setup_project():
-    """
-    add DNS, web server config, mysql database, mysql user and etc
-    """
-    # TODO: setup_project is not used, please move code to setup_server
-    require('hosts', provided_by=[staging_server, production_server])
 
-    _setup_dns()
-    _setup_mysql()
-    #_setup_nginx()
-
-
-def _setup_server_config():
+def sync_project_config():
     # TODO: set /etc config files
     def get_local_config_files():
         local_etc_dir = os.path.join(settings.LOCAL_SERVER_CONFIG_DIR, 'etc')
@@ -400,6 +394,10 @@ def _setup_server_config():
 
     is_update = False
     for local_config_file in get_local_config_files():
+        if local_config_file[0] == '.':
+            # not sync hidden files
+            continue
+
         remote_config_file = local_config_file.replace(
             settings.LOCAL_SERVER_CONFIG_DIR, '')
 
@@ -416,19 +414,6 @@ def _setup_server_config():
         print ' run "/etc/init.d/nginx reload" only if fastcgi port is static'
         print ' if not, please re-deployment project then restart server'
 
-def _setup_server_cmd():
-    for cmd, is_sudo in settings.SERVER_CONFIG_CMD:
-        if is_sudo:
-            sudo(cmd)
-        else:
-            run(cmd)
-
-def setup_server():
-    """
-    deployment nginx, memcached and other server software's config
-    """
-    _setup_server_cmd()
-    _setup_server_config()
 
 def upload_ssh_key():
     run('test -d ~/.ssh || mkdir ~/.ssh')

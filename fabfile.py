@@ -403,7 +403,7 @@ def sync_project_config():
 
     is_update = False
     for local_config_file in get_local_config_files():
-        if local_config_file[0] == '.':
+        if os.path.basename(local_config_file)[0] == '.':
             # not sync hidden files
             continue
 
@@ -422,7 +422,8 @@ def sync_project_config():
         print 'IMPORT:'
         print ' run "/etc/init.d/nginx reload" only if fastcgi port is static'
         print ' if not, please re-deployment project then restart server'
-
+    else:
+        print "No config files find in", settings.LOCAL_SERVER_CONFIG_DIR
 
 def upload_ssh_key():
     run('test -d ~/.ssh || mkdir ~/.ssh')

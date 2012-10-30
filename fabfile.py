@@ -63,6 +63,15 @@ def production_server():
     """
     deployment at production server
     """
+    print "=== WARNING: You will working on *PRUDOUCTION* server ==="
+    print "=== WARNING: If you know what you are doing?         ==="
+    choice = raw_input("Please input Yes or No: ")
+    if choice == "Yes":
+        print "OK, Continue ..."
+    else:
+        print "OK, Exit."
+        raise SystemExit
+
     env.server_type = 'production'
     env.hosts = settings.PRODUCTION_SSH_HOSTS
     env.user = settings.PRODUCTION_SSH_USER

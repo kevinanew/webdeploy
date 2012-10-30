@@ -55,7 +55,7 @@ class Git(ScmBase):
         self.run_cmd(update_all_submodels_cmd)
 
     def _export(self):
-        export_cmd = ('rsync -av {work_dir}/ {export_dir} --exclude=".git"'
+        export_cmd = ('rsync -av --delete {work_dir}/ {export_dir} --exclude=".git"'
             ' > /dev/null').format(**self.__dict__)
         self.run_cmd(export_cmd)
 

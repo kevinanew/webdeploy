@@ -6,14 +6,14 @@ import settings
 
 
 class DatabaseBackup(object):
-    def __init__(self, db_user, db_password, db_name, db_host):
+    def __init__(self, db_user, db_password, db_name, db_host, server_type):
         self.db_user = db_user
         self.db_password = db_password
         self.db_name = db_name
         self.db_host = db_host
 
-        self.sql_dump_filename = '%s.sql.gz' % datetime.now().strftime(
-            '%F_%Hh%Mm%Ss')
+        self.sql_dump_filename = '%s-%s.sql.gz' % (server_type,
+            datetime.now().strftime('%F_%Hh%Mm%Ss'))
     
         self.remote_backup_dir = settings.REMOTE_DATABASE_BACKUP_DIR
         self.local_backup_dir = os.path.expanduser(

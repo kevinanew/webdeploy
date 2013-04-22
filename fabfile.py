@@ -308,11 +308,12 @@ def backup_database():
 
     from lib.database_backup import DatabaseBackup
     database_backup = DatabaseBackup(env.database_user, env.database_password,
-        env.database_name, env.database_host)
+        env.database_name, env.database_host, env.server_type)
 
     utils.make_dir_if_not_exists(database_backup.get_remote_backup_dir())
     database_backup.make_local_backup_file_path()
 
+    run('uptime')
     run(database_backup.get_backup_cmd())
     run(database_backup.get_show_remote_backup_file_cmd())
     get(database_backup.get_remote_backup_file_path(),

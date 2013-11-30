@@ -226,7 +226,7 @@ def backup_code():
             code_dir=settings.PROJECT_REMOTE_SOURCE_CODE_DIR))
 
         # make new backup
-        run('test -d {code_dir} && cp -r {code_dir} {code_dir}.bak ' \
+        run('test -d {code_dir} && rsync -avzq --delete {code_dir} {code_dir}.bak ' \
             '|| echo "skip backup"'.format(
             code_dir=settings.PROJECT_REMOTE_SOURCE_CODE_DIR))
 
@@ -253,7 +253,7 @@ def _sync_uploading_code_dir():
     assert settings.PROJECT_REMOTE_SOURCE_CODE_DIR
     uploading_code_dir = '%s.uploading' % settings.PROJECT_REMOTE_SOURCE_CODE_DIR
     rsync_cmd = 'rsync -rlvxc "%s/" "%s/"' % (uploading_code_dir, settings.PROJECT_REMOTE_SOURCE_CODE_DIR)
-    print "cmd:,", rsync_cmd
+    print "cmd:", rsync_cmd
     run(rsync_cmd)
 
 
@@ -316,8 +316,17 @@ def backup_database():
     run('uptime')
     run(database_backup.get_backup_cmd())
     run(database_backup.get_show_remote_backup_file_cmd())
+    #run('md5sum %s' % database_backup.get_remote_backup_file_path())
     get(database_backup.get_remote_backup_file_path(),
         database_backup.get_local_backup_file_path())
+
+    is_download_sucessed = utils.is_same_content(
+        database_backup.get_local_backup_file_path(),
+        database_backup.get_remote_backup_file_path())
+    if is_download_sucessed:
+        print "Backup database sucess"
+    else:
+        print "backup database faile"
     run(database_backup.get_remove_remote_backup_file_cmd())
 
 
@@ -338,7 +347,13 @@ def restore_database():
     put(database_restore.get_local_restore_file(),
         database_restore.get_remote_restore_file())
 
-    run(database_restore.get_restore_database_cmd())
+    is_uploadad_sucessed = utils.is_same_content(
+        database_restore.get_local_restore_file(),
+        database_restore.get_remote_restore_file())
+    if is_uploadad_sucessed:
+        run(database_restore.get_restore_database_cmd())
+    else:
+        print "upload failed, you need upload again"
 
 
 ######################################################################
@@ -369,30 +384,19 @@ def run_setup_server_cmd():
         else:
             run(cmd)
 
-
-def _setup_mysql():
+def create_mysql_database_and_user():
     require('hosts', provided_by=[staging_server, production_server])
-    mysql_cmd_template = 'mysql -u{username} -p{password} -e "%s"'.format(
-        username=settings.MYSQL_ROOT_USER,
-        password=settings.MYSQL_ROOT_PASSWORD)
-    create_db_sql = ('CREATE DATABASE IF NOT EXISTS {dbname} CHARACTER SET utf8'
-        ' COLLATE utf8_general_ci;').format(dbname=settings.MYSQL_DBNAME)
-    run(mysql_cmd_template % create_db_sql)
 
-    user_add_sql = ("grant ALL PRIVILEGES on {dbname}.* to "
-        "'{username}'@'localhost' "
-        "IDENTIFIED BY '{password}';").format(dbname=settings.MYSQL_DBNAME,
-            username=settings.MYSQL_USER,
-            password=settings.MYSQL_USER_PASSWORD)
-    run(mysql_cmd_template % user_add_sql)
-
-    user_add_sql = ("grant ALL PRIVILEGES on {dbname}.* to "
-        "'{username}'@'127.0.0.1' "
-        "IDENTIFIED BY '{password}';").format(dbname=settings.MYSQL_DBNAME,
-            username=settings.MYSQL_USER,
-            password=settings.MYSQL_USER_PASSWORD)
-    run(mysql_cmd_template % user_add_sql)
-
+    mysql_root = raw_input("Mysql username (need root privilege): ")
+    mysql_root_password = raw_input('Mysql password: ')
+    
+    from lib.mysql import MySql
+    mysql = MySql(mysql_root, mysql_root_password)
+    # create project database
+    run(mysql.create_database(env.database_name))
+    # carete user for this database
+    run(mysql.create_user_for_database(env.database_user, env.database_password,
+        env.database_name))
 
 def sync_project_config():
     # TODO: set /etc config files

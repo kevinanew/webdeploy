@@ -206,6 +206,15 @@ def setup_virtualenv():
         '|| virtualenv -p {python_path} --no-site-packages {virtualenv_dir}'
         ).format(python_path=python_path,
             virtualenv_dir=settings.PROJECT_REMOTE_VIRTUALENV_DIR))
+
+    # add project dir into python path
+    run('echo "{project_dir}" > {virtualenv_dir}/lib/{python_version}/site-packages/{path_config_name}.pth'.format(
+        virtualenv_dir=settings.PROJECT_REMOTE_VIRTUALENV_DIR,
+        python_version=os.path.basename(python_path),
+        path_config_name='webdeploy' + settings.PROJECT_REMOTE_DIR.replace('/', '-'),
+        project_dir=settings.PROJECT_REMOTE_SOURCE_CODE_DIR,
+    ))
+
     _pip_install_virtualenv()
 
 

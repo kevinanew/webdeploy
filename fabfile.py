@@ -382,6 +382,18 @@ def restart_web_server():
         else:
             run(server_restart_cmd)
 
+def reload_web_server():
+    """
+    reload web server, you must add reload command in project_settings.py
+    """
+    require('hosts', provided_by=[staging_server, production_server])
+    assert settings.WEB_SERVER_RELOAD_CMD_LIST
+    for server_reload_cmd, is_need_sudo in settings.WEB_SERVER_RESTART_CMD_LIST:
+        print "Reload web server:", server_reload_cmd
+        if is_need_sudo:
+            sudo(server_reload_cmd)
+        else:
+            run(server_reload_cmd)
 
 ######################################################################
 # Server setup

@@ -170,7 +170,6 @@ def package():
 ######################################################################
 # Deploy project
 ######################################################################
-
 def _pip_install_virtualenv():
     """
     install python modules in virtualenv use pip
@@ -178,22 +177,17 @@ def _pip_install_virtualenv():
     if not settings.PIP_REQUIREMENTS:
         return
 
-    run("""cat << EOF > pip_requirements.txt
-%s
-EOF""" % settings.PIP_REQUIREMENTS.strip())
-    run('source %s/bin/activate && pip install -r pip_requirements.txt' % \
-        settings.PROJECT_REMOTE_VIRTUALENV_DIR)
-    run('rm pip_requirements.txt')
+    commands = ['source %s/bin/activate' %
+                settings.PROJECT_REMOTE_VIRTUALENV_DIR]
 
-def pip_install():
-    """
-    install all modules use pip at localhost
-    """
-    local("""cat << EOF > pip_requirements.txt
-%s
-EOF""" % settings.PIP_REQUIREMENTS.strip())
-    local('pip install -r pip_requirements.txt')
-    local('rm pip_requirements.txt')
+    for package in settings.PIP_REQUIREMENTS.splitlines():
+        package = package.strip()
+        if package and not package.startswith('#'):
+            commands.append('echo "install %s" && pip install %s' % (
+                            package, package))
+
+    run(' && '.join(commands))
+
 
 def setup_virtualenv():
     """
@@ -410,7 +404,7 @@ def create_mysql_database_and_user():
 
     mysql_root = raw_input("Mysql username (need root privilege): ")
     mysql_root_password = raw_input('Mysql password: ')
-    
+
     from lib.mysql import MySql
     mysql = MySql(mysql_root, mysql_root_password)
     # create project database
@@ -455,7 +449,7 @@ def upload_ssh_key():
     run('test -d ~/.ssh || mkdir ~/.ssh')
     run('test -e ~/.ssh/authorized_keys || touch ~/.ssh/authorized_keys')
     run('chmod 600 ~/.ssh/authorized_keys')
-    
+
     ssh_public_key_content = open(env.public_key_filename, 'rb').read().strip()
     authorized_keys_content = run('cat ~/.ssh/authorized_keys')
     if ssh_public_key_content in authorized_keys_content:
@@ -465,7 +459,7 @@ def upload_ssh_key():
         print "SSH public key added"
 
 ######################################################################
-# Misc 
+# Misc
 ######################################################################
 def init():
     """

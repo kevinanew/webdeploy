@@ -13,13 +13,6 @@ from lib import utils, rsync
 import settings
 
 
-def help():
-    help_doc = settings.__doc__.strip()
-    if help_doc:
-        print help_doc
-    else:
-        print "Write down help doc before you can read it"
-
 def default_deploy():
     """
     print a default deploy command
@@ -29,6 +22,7 @@ def default_deploy():
 ######################################################################
 # Server settings
 ######################################################################
+
 
 def staging_server():
     """
@@ -46,9 +40,9 @@ def staging_server():
     # FIXME: how it work if every server's ssh key is different
     env.ssh_key_file = ssh_key_path
 
-    ssh_public_key_path = os.path.expanduser(settings.STAGING_SSH_PUBLIC_KEY)
-    if ssh_public_key_path:
-        env.public_key_filename = ssh_public_key_path
+    ssh_public_key = os.path.expanduser(settings.STAGING_SSH_PUBLIC_KEY)
+    if ssh_public_key:
+        env.public_key_filename = ssh_public_key
 
     env.database_host = settings.STAGING_DATABASE_HOST
     env.database_user = settings.STAGING_DATABASE_USER
@@ -84,9 +78,9 @@ def production_server():
     # FIXME: how it work if every server's ssh key is different
     env.ssh_key_file = ssh_key_path
 
-    ssh_public_key_path = os.path.expanduser(settings.PRODUCTION_SSH_PUBLIC_KEY)
-    if ssh_public_key_path:
-        env.public_key_filename = ssh_public_key_path
+    ssh_public_key = os.path.expanduser(settings.PRODUCTION_SSH_PUBLIC_KEY)
+    if ssh_public_key:
+        env.public_key_filename = ssh_public_key
 
     env.database_host = settings.PRODUCTION_DATABASE_HOST
     env.database_user = settings.PRODUCTION_DATABASE_USER
@@ -197,9 +191,9 @@ def setup_virtualenv():
     python_path = getattr(settings, 'PYTHON_PATH', '/usr/bin/python2.7')
 
     run(('test -d {virtualenv_dir} && echo "virtualenv existed" '
-        '|| virtualenv -p {python_path} --no-site-packages {virtualenv_dir}'
-        ).format(python_path=python_path,
-            virtualenv_dir=settings.PROJECT_REMOTE_VIRTUALENV_DIR))
+         '|| virtualenv -p {python_path} --no-site-packages {virtualenv_dir}'
+         ).format(python_path=python_path,
+                  virtualenv_dir=settings.PROJECT_REMOTE_VIRTUALENV_DIR))
 
     # add project dir into python path
     run('echo "{project_dir}" > {virtualenv_dir}/lib/{python_version}/site-packages/{path_config_name}.pth'.format(
@@ -230,8 +224,7 @@ def backup_code():
 
         # make new backup
         run('test -d {code_dir} && rsync -avzq --delete {code_dir} {code_dir}.bak ' \
-            '|| echo "skip backup"'.format(
-            code_dir=settings.PROJECT_REMOTE_SOURCE_CODE_DIR))
+            '|| echo "skip backup"'.format(code_dir=settings.PROJECT_REMOTE_SOURCE_CODE_DIR))
 
 
 def _upload_code_in_tmp_dir():
@@ -241,8 +234,8 @@ def _upload_code_in_tmp_dir():
         run('test -d {code_dir} || mkdir -p {code_dir}'.format(
             code_dir=uploading_code_dir))
         _rsync = rsync.Rsync(host=host, user=env.user,
-            local_dir=env.scm.get_package_dir(),
-            remote_dir=uploading_code_dir)
+                             local_dir=env.scm.get_package_dir(),
+                             remote_dir=uploading_code_dir)
         _rsync.timeout = 240
         _rsync.max_try_time = 10
         _rsync.set_password(env.password)
@@ -278,10 +271,12 @@ def _run_remote_deploy_cmd():
     for deploy_cmd in deploy_cmd_list:
         run(deploy_cmd)
 
+
 def _setup_crontab():
     if settings.PROJECT_CRON_FILE:
         run('test -f {cron_file} && crontab {cron_file} || echo "skip crontab"'.format(
             cron_file=settings.PROJECT_CRON_FILE))
+
 
 def deploy():
     """
@@ -310,8 +305,11 @@ def backup_database():
     require('database_host', provided_by=[staging_server, production_server])
 
     from lib.database_backup import DatabaseBackup
-    database_backup = DatabaseBackup(env.database_user, env.database_password,
-        env.database_name, env.database_host, env.server_type)
+    database_backup = DatabaseBackup(env.database_user,
+                                     env.database_password,
+                                     env.database_name,
+                                     env.database_host,
+                                     env.server_type)
 
     utils.make_dir_if_not_exists(database_backup.get_remote_backup_dir())
     database_backup.make_local_backup_file_path()
@@ -341,7 +339,9 @@ def restore_database():
 
     from lib.database_restore import DatabaseRestore
     database_restore = DatabaseRestore(env.database_user,
-        env.database_password, env.database_name, env.database_host)
+                                       env.database_password,
+                                       env.database_name,
+                                       env.database_host)
 
     utils.make_dir_if_not_exists(database_restore.get_remote_restore_dir())
 
@@ -376,6 +376,7 @@ def restart_web_server():
         else:
             run(server_restart_cmd)
 
+
 def reload_web_server():
     """
     reload web server, you must add reload command in project_settings.py
@@ -389,6 +390,7 @@ def reload_web_server():
         else:
             run(server_reload_cmd)
 
+
 ######################################################################
 # Server setup
 ######################################################################
@@ -398,6 +400,7 @@ def run_setup_server_cmd():
             sudo(cmd)
         else:
             run(cmd)
+
 
 def create_mysql_database_and_user():
     require('hosts', provided_by=[staging_server, production_server])
@@ -412,6 +415,7 @@ def create_mysql_database_and_user():
     # carete user for this database
     run(mysql.create_user_for_database(env.database_user, env.database_password,
         env.database_name))
+
 
 def sync_project_config():
     # TODO: set /etc config files
@@ -434,7 +438,7 @@ def sync_project_config():
             is_update = True
             utils.backup(remote_config_file, use_sudo=True)
             utils.upload(local_config_file, remote_config_file,
-                use_sudo=True, mode=0644)
+                         use_sudo=True, mode=0644)
             sudo('chown %s %s' % (env.user, remote_config_file))
 
     if is_update:
@@ -444,6 +448,7 @@ def sync_project_config():
         print ' if not, please re-deployment project then restart server'
     else:
         print "No config files find in", settings.LOCAL_SERVER_CONFIG_DIR
+
 
 def upload_ssh_key():
     run('test -d ~/.ssh || mkdir ~/.ssh')
@@ -458,6 +463,7 @@ def upload_ssh_key():
         files.append('~/.ssh/authorized_keys', ssh_public_key_content)
         print "SSH public key added"
 
+
 ######################################################################
 # Misc
 ######################################################################
@@ -469,13 +475,14 @@ def init():
         print "remove", settings.SCM_DEPLOY
         shutil.rmtree(settings.SCM_DEPLOY)
 
+
 def help():
     print settings.HELP_TEXT
+
 
 ######################################################################
 # Testing
 ######################################################################
-
 def test():
     require('hosts', provided_by=[staging_server, production_server])
 

@@ -242,7 +242,7 @@ def remove_virtualenv():
     run('rm -rf %s' % settings.PROJECT_REMOTE_VIRTUALENV_DIR)
 
 
-def backup_code():
+def _backup_code():
     assert settings.PROJECT_REMOTE_SOURCE_CODE_DIR
     for host in env.hosts:
         # delete old backup
@@ -313,7 +313,7 @@ def deploy():
     require('scm', provided_by=[package])
 
     _upload_code_in_tmp_dir()
-    backup_code()
+    _backup_code()
     _sync_uploading_code_dir()
 
     _setup_crontab()
@@ -322,7 +322,7 @@ def deploy():
 
 
 ######################################################################
-# Database management
+# Backup management
 ######################################################################
 
 def backup_database():
@@ -386,10 +386,21 @@ def restore_database():
         print "upload failed, you need upload again"
 
 
+def backup_project_files():
+    from datetime import datetime
+    local_backup_dir = os.path.join(settings.LOCAL_FILE_BACKUP_DIR,
+                                    datetime.now().strftime('%F_%Hh%Mm%Ss'))
+    # backup proejct dir
+    backup_cmd = 'rsync -avc --exclude="*.pyc" --progress {remote_host}:{project_dir} {local_backup_dir}'.format(
+        remote_host=env.hosts[0],
+        project_dir=settings.PROJECT_REMOTE_DIR,
+        local_backup_dir=local_backup_dir)
+    local(backup_cmd)
+
+
 ######################################################################
 # Webserver management
 ######################################################################
-
 def restart_web_server():
     """
     restart web server, you must add restart command in project_settings.py

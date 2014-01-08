@@ -23,6 +23,34 @@ def default_deploy():
 # Server settings
 ######################################################################
 
+def local_server():
+    """
+    deployment at local pc
+    """
+    env.server_type = 'local'
+    env.hosts = settings.LOCAL_SSH_HOSTS
+    env.user = settings.LOCAL_SSH_USER
+    env.password = settings.LOCAL_SSH_PASSWORD
+
+    ssh_key_path = os.path.expanduser(settings.LOCAL_SSH_KEY)
+    if ssh_key_path:
+        env.key_filename = [ssh_key_path]
+    # this will use by some tool like rsync
+    # FIXME: how it work if every server's ssh key is different
+    env.ssh_key_file = ssh_key_path
+
+    ssh_public_key = os.path.expanduser(settings.LOCAL_SSH_PUBLIC_KEY)
+    if ssh_public_key:
+        env.public_key_filename = ssh_public_key
+
+    env.database_host = settings.LOCAL_DATABASE_HOST
+    env.database_user = settings.LOCAL_DATABASE_USER
+    env.database_password = settings.LOCAL_DATABASE_PASSWORD
+    env.database_name = settings.LOCAL_DATABASE_NAME
+    env.database_port = settings.LOCAL_DATABASE_PORT
+
+    utils.print_server_info(env)
+
 
 def staging_server():
     """
@@ -94,7 +122,6 @@ def production_server():
 ######################################################################
 # Package Source code
 ######################################################################
-
 def _scm_package():
     from lib import scm
     scm_class = scm.get_scm_class(settings.SCM_NAME)

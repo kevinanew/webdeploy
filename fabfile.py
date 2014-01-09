@@ -10,6 +10,8 @@ from fabric.state import env
 from fabric.contrib import files
 
 from lib import utils, rsync
+from lib.database_restore import DatabaseRestore
+from lib.database_backup import DatabaseBackup
 import settings
 
 
@@ -19,10 +21,10 @@ def default_deploy():
     """
     print "deploy command:", settings.DEFAULT_DEPLOY_CMD
 
+
 ######################################################################
 # Server settings
 ######################################################################
-
 def local_server():
     """
     deployment at local pc
@@ -223,12 +225,13 @@ def setup_virtualenv():
                   virtualenv_dir=settings.PROJECT_REMOTE_VIRTUALENV_DIR))
 
     # add project dir into python path
-    run('echo "{project_dir}" > {virtualenv_dir}/lib/{python_version}/site-packages/{path_config_name}.pth'.format(
-        virtualenv_dir=settings.PROJECT_REMOTE_VIRTUALENV_DIR,
-        python_version=os.path.basename(python_path),
-        path_config_name='webdeploy' + settings.PROJECT_REMOTE_DIR.replace('/', '-'),
-        project_dir=settings.PROJECT_REMOTE_SOURCE_CODE_DIR,
-    ))
+    run(('echo "{project_dir}" > {virtualenv_dir}/lib/'
+         '{python_version}/site-packages/{path_config_name}.pth'
+         ).format(virtualenv_dir=settings.PROJECT_REMOTE_VIRTUALENV_DIR,
+                  python_version=os.path.basename(python_path),
+                  path_config_name='webdeploy' + settings.PROJECT_REMOTE_DIR.replace('/', '-'),
+                  project_dir=settings.PROJECT_REMOTE_SOURCE_CODE_DIR)
+        )
 
     _pip_install_virtualenv()
 
@@ -250,8 +253,10 @@ def _backup_code():
             code_dir=settings.PROJECT_REMOTE_SOURCE_CODE_DIR))
 
         # make new backup
-        run('test -d {code_dir} && rsync -avzq --delete {code_dir} {code_dir}.bak ' \
-            '|| echo "skip backup"'.format(code_dir=settings.PROJECT_REMOTE_SOURCE_CODE_DIR))
+        run(('test -d {code_dir} '
+             '&& rsync -avzq --delete {code_dir} {code_dir}.bak '
+             '|| echo "skip backup"'
+             ).format(code_dir=settings.PROJECT_REMOTE_SOURCE_CODE_DIR))
 
 
 def _upload_code_in_tmp_dir():
@@ -331,7 +336,6 @@ def backup_database():
     """
     require('database_host', provided_by=[staging_server, production_server])
 
-    from lib.database_backup import DatabaseBackup
     database_backup = DatabaseBackup(env.database_user,
                                      env.database_password,
                                      env.database_name,
@@ -356,6 +360,7 @@ def backup_database():
     else:
         print "backup database faile"
     run(database_backup.get_remove_remote_backup_file_cmd())
+    return database_backup.get_local_backup_file_path()
 
 
 def restore_database():
@@ -364,7 +369,6 @@ def restore_database():
     """
     require('database_host', provided_by=[staging_server])
 
-    from lib.database_restore import DatabaseRestore
     database_restore = DatabaseRestore(env.database_user,
                                        env.database_password,
                                        env.database_name,
@@ -373,7 +377,7 @@ def restore_database():
     utils.make_dir_if_not_exists(database_restore.get_remote_restore_dir())
 
     database_restore.list_backup_file()
-    database_restore.set_restore_file()
+    database_restore.select_restore_file()
     put(database_restore.get_local_restore_file(),
         database_restore.get_remote_restore_file())
 
@@ -390,6 +394,9 @@ def backup_project_files():
     from datetime import datetime
     local_backup_dir = os.path.join(settings.LOCAL_FILE_BACKUP_DIR,
                                     datetime.now().strftime('%F_%Hh%Mm%Ss'))
+    if not os.path.exists(local_backup_dir):
+        os.makedirs(local_backup_dir)
+
     # backup proejct dir
     backup_cmd = 'rsync -avc --exclude="*.pyc" --progress {remote_host}:{project_dir} {local_backup_dir}'.format(
         remote_host=env.hosts[0],

@@ -32,6 +32,9 @@ class DatabaseRestore(object):
     def get_local_restore_file(self):
         return self.restore_file
 
+    def set_local_restore_file(self, path):
+        self.restore_file = path
+
     def get_unziped_sql_filename(self):
         unziped_sql_filename, _= os.path.splitext(
             self.get_remote_restore_file())
@@ -47,7 +50,7 @@ class DatabaseRestore(object):
                 raise SystemExit('Command exit ...')
             else:
                 print "choice wrong, please input again"
-            
+
             if error > 3:
                 raise SystemExit('Try %s times, command exit ...' % error)
             else:
@@ -69,7 +72,7 @@ class DatabaseRestore(object):
             backup_file_id_text = "[id:%s]" % backup_file_id
             print backup_file_id_text, _backup_file, backup_file_id_text
 
-    def set_restore_file(self):
+    def select_restore_file(self):
         while True:
             user_input_backup_file_id_str = raw_input(
                 "Restore backup file id: ")
@@ -88,7 +91,7 @@ class DatabaseRestore(object):
     def get_restore_database_cmd(self):
         return "%s && %s; %s" % (self._get_unziped_sql_file_cmd(),
             self._get_sql_restore_cmd(), self._get_sql_clean_file_cmd())
-    
+
     def _get_unziped_sql_file_cmd(self):
         return 'gunzip -c %s > %s' % (self.get_remote_restore_file(),
             self.get_unziped_sql_filename())

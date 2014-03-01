@@ -5,13 +5,11 @@ Useage:
 """
 import os
 import shutil
-from fabric.api import run, local, require, sudo, get, put
+from fabric.api import *
 from fabric.state import env
 from fabric.contrib import files
 
 from lib import utils, rsync
-from lib.database_restore import DatabaseRestore
-from lib.database_backup import DatabaseBackup
 import settings
 
 
@@ -336,6 +334,7 @@ def backup_database():
     """
     require('database_host', provided_by=[staging_server, production_server])
 
+    from lib.database_backup import DatabaseBackup
     database_backup = DatabaseBackup(env.database_user,
                                      env.database_password,
                                      env.database_name,
@@ -369,6 +368,7 @@ def restore_database():
     """
     require('database_host', provided_by=[staging_server])
 
+    from lib.database_restore import DatabaseRestore
     database_restore = DatabaseRestore(env.database_user,
                                        env.database_password,
                                        env.database_name,

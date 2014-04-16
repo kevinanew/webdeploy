@@ -391,17 +391,40 @@ def restore_database():
 
 
 def backup_project_files():
+    """
+    sync project files
+    """
     from datetime import datetime
-    local_backup_dir = os.path.join(settings.LOCAL_FILE_BACKUP_DIR,
-                                    datetime.now().strftime('%F_%Hh%Mm%Ss'))
+    dir_with_timestamp = os.path.join(settings.LOCAL_FILE_BACKUP_DIR,
+                                      env.server_type,
+                                      datetime.now().strftime('%F_%Hh%Mm%Ss'))
+    dir_with_current = os.path.join(settings.LOCAL_FILE_BACKUP_DIR,
+                                    env.server_type,
+                                    'current')
+    select_dir = raw_input('Select backup dir:\n (1) %s\n (2) %s\n id: ' % (
+        dir_with_timestamp, dir_with_current
+    ))
+    if select_dir == '1':
+        local_backup_dir = dir_with_timestamp
+    elif select == '2':
+        local_backup_dir = dir_with_current
+    else:
+        raise SystemExit('Unknow choice')
+
+    local_backup_dir = os.path.expanduser(local_backup_dir)
+    target_dir = '%s:%s' % (env.hosts[0], settings.PROJECT_REMOTE_DIR)
+
+    choice = raw_input('Are you sure want to sync [%s] %s -> %s ? (Y/N)' % (
+        env.server_type, target_dir, local_backup_dir))
+    if choice.lower() != 'y':
+        raise SystemExit
+
     if not os.path.exists(local_backup_dir):
         os.makedirs(local_backup_dir)
 
     # backup proejct dir
-    backup_cmd = 'rsync -avc --exclude="*.pyc" --progress {remote_host}:{project_dir} {local_backup_dir}'.format(
-        remote_host=env.hosts[0],
-        project_dir=settings.PROJECT_REMOTE_DIR,
-        local_backup_dir=local_backup_dir)
+    backup_cmd = 'rsync -avc --bwlimit=8000 --exclude="*.pyc" --progress %s %s' % (
+        target_dir, local_backup_dir)
     local(backup_cmd)
 
 

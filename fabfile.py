@@ -406,7 +406,7 @@ def backup_project_files():
     ))
     if select_dir == '1':
         local_backup_dir = dir_with_timestamp
-    elif select == '2':
+    elif select_dir == '2':
         local_backup_dir = dir_with_current
     else:
         raise SystemExit('Unknow choice')

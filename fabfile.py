@@ -422,9 +422,14 @@ def backup_project_files():
     if not os.path.exists(local_backup_dir):
         os.makedirs(local_backup_dir)
 
+
     # backup proejct dir
-    backup_cmd = 'rsync -avc --bwlimit=8000 --exclude="*.pyc" --progress %s %s' % (
-        target_dir, local_backup_dir)
+    backup_cmd = "ssh {user}@{remote_host} tar -cf - {remote_dir} | tar -xf - -C {local_backup_dir}".format(
+        local_backup_dir=local_backup_dir,
+        user=env.user,
+        remote_host=env.hosts[0],
+        remote_dir=settings.PROJECT_REMOTE_DIR,
+    )
     local(backup_cmd)
 
 

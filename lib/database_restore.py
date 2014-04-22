@@ -89,22 +89,8 @@ class DatabaseRestore(object):
                 print "Error: Not find file_id:", backup_file_id
 
     def get_restore_database_cmd(self):
-        return "%s && %s; %s" % (self._get_unziped_sql_file_cmd(),
-            self._get_sql_restore_cmd(), self._get_sql_clean_file_cmd())
-
-    def _get_unziped_sql_file_cmd(self):
-        return 'gunzip -c %s > %s' % (self.get_remote_restore_file(),
-            self.get_unziped_sql_filename())
-
-    def _get_sql_restore_cmd(self):
-        # cmd: mysql -u [uname] -p[pass] [db_to_restore] < [backupfile.sql]
-        sql_restore_cmd_template = (
-            'mysql -h {db_host} -u {db_user} -p"{db_password}" {db_name} '
-            '< {unziped_sql_file}')
-        return sql_restore_cmd_template.format(
+        return 'gunzip -c {sql_backup_file}|mysql -h {db_host} -u {db_user} -p"{db_password}" {db_name}; rm -f {sql_backup_file}'.format(
+            sql_backup_file=self.get_remote_restore_file(),
             unziped_sql_file=self.get_unziped_sql_filename(),
-            **self.__dict__)
-
-    def _get_sql_clean_file_cmd(self):
-        return 'rm -f %s ;rm -f %s' % (self.get_remote_restore_file(),
-            self.get_unziped_sql_filename())
+            **self.__dict__
+        )

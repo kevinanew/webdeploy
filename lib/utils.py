@@ -1,6 +1,7 @@
 # coding: utf-8
 import os
 import re
+import socket
 
 from fabric.api import run, local, sudo, put
 from fabric.contrib import files
@@ -10,7 +11,13 @@ import settings
 
 def print_server_info(env):
     print '%s server:' % env.server_type
-    print '--- host:', env.hosts
+    for host in env.hosts:
+        ip_address = socket.gethostbyname(host)
+        if ip_address == host:
+            print '--- host:', host
+        else:
+            print '--- host:', host, '-> [%s]' % ip_address
+
     print '--- username:', env.user
 
     if env.password:

@@ -12,7 +12,12 @@ import settings
 def print_server_info(env):
     print '%s server:' % env.server_type
     for host in env.hosts:
-        ip_address = socket.gethostbyname(host)
+        try:
+            ip_address = socket.gethostbyname(host)
+        except Exception, err:
+            print 'host name:', host
+            raise Exception(err)
+
         if ip_address == host:
             print '--- host:', host
         else:
